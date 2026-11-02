@@ -32,7 +32,7 @@ function neutralizeGreenHairOutline(material: MmdStandardMaterial): void {
  * visible by default in MMD, and look like a giant background in a character viewer.
  * Hide them; the character itself and all outfit/expression switches are unaffected.
  */
-const EFFECT_MATERIAL = /^(emotions?\(?[^)]*\)?|emotion\d+|表情\d*|effects?\d*|エフェクト\d*)$/i;
+const EFFECT_MATERIAL = /^(emotions?\d*(\([^)]*\))?|emotion\d+(\.\d+)?|表情\d*|effects?\d*|エフェクト\d*)$/i;
 
 function hideEffectMaterial(material: MmdStandardMaterial): void {
     const name = (material.name ?? "").trim();
