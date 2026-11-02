@@ -2,6 +2,7 @@ import type { JSX } from "preact";
 import { useEffect, useMemo, useRef, useState } from "preact/hooks";
 import type { SceneApi } from "../../scene/sceneApi";
 import type { MorphItem, SceneState } from "../../scene/sceneState";
+import { hasMorphLabel, morphLabel } from "../morphLabels";
 
 interface Props {
     api: SceneApi;
@@ -81,16 +82,18 @@ export function MorphPanel({ api, state }: Props): JSX.Element | null {
                             class="flex w-full items-center justify-between gap-2 px-3 py-2 text-left hover:bg-[rgb(64,68,70)]"
                             onClick={(): void => api.setMorphWeight(m.name, m.weight > 0 ? 0 : 1)}
                         >
-                            <span class="truncate">{m.name}</span>
+                            <span class="truncate" title={hasMorphLabel(m.name) ? m.name : undefined}>{morphLabel(m.name)}</span>
                             <span
                                 class={`shrink-0 rounded px-2 py-0.5 text-xs ${m.weight > 0 ? "bg-[rgb(90,140,90)]" : "bg-white/10 opacity-60"}`}
                             >
-                                {m.weight > 0 ? "ON" : "OFF"}
+                                {m.weight > 0 ? "开" : "关"}
                             </span>
                         </button>
                     ) : (
                         <label key={m.name} class="flex items-center gap-2 px-3 py-1.5 hover:bg-[rgb(64,68,70)]">
-                            <span class="w-[110px] shrink-0 truncate text-xs">{m.name}</span>
+                            <span class="w-[110px] shrink-0 truncate text-xs" title={hasMorphLabel(m.name) ? m.name : undefined}>
+                                {morphLabel(m.name)}
+                            </span>
                             <input
                                 type="range"
                                 min="0"
