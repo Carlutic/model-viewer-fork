@@ -983,10 +983,6 @@ body {
     width: 2rem;
   }
 
-  .sm\:w-\[170px\] {
-    width: 170px;
-  }
-
   .sm\:w-\[250px\] {
     width: 250px;
   }
@@ -997,10 +993,6 @@ body {
 
   .sm\:max-w-\[95vw\] {
     max-width: 95vw;
-  }
-
-  .sm\:flex-none {
-    flex: none;
   }
 
   .sm\:grid-cols-5 {
