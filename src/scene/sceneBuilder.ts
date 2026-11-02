@@ -234,6 +234,13 @@ export class SceneBuilder implements ISceneBuilder {
                 cam.pinchDeltaPercentage = 0.002;
             }
             cam.layerMask = 1;
+            // Left-drag orbits, right-drag pans (Babylon defaults). Middle-drag is
+            // remapped to panning by the custom handler below, so take button 1 out
+            // of the camera input — otherwise Babylon treats it as orbit.
+            const pointersInput = cam.inputs.attached["pointers"] as unknown as { buttons: number[] } | undefined;
+            if (pointersInput && Array.isArray(pointersInput.buttons)) {
+                pointersInput.buttons = [0, 2];
+            }
             return cam;
         };
 
@@ -2093,6 +2100,68 @@ export class SceneBuilder implements ISceneBuilder {
         scene.onPointerDown = handlePointerDown;
         scene.onPointerUp = handlePointerUp;
         scene.onPointerMove = handlePointerMove;
+
+        // ── Middle-mouse drag panning (desktop) ─────────────────────────────────
+        // Babylon's ArcRotateCamera orbits with the middle button and pans with the
+        // right one. Most 3D/MMD viewers (and what users expect) is middle-drag =
+        // pan the view, so map it here. The camera inputs above are configured to
+        // ignore button 1 so it does not orbit at the same time.
+        //
+        // Note: Chrome's middle-click auto-scroll would otherwise start on mousedown
+        // and swallow the gesture (which is why middle-drag felt completely dead),
+        // so cancel that default action first.
+        {
+            let middlePanning = false;
+            let lastX = 0;
+            let lastY = 0;
+            const isArcRotate = (cam: unknown): cam is ArcRotateCamera => cam instanceof ArcRotateCamera;
+
+            const cancelAutoScroll = (e: MouseEvent): void => {
+                if (e.button === 1) e.preventDefault();
+            };
+            canvas.addEventListener("mousedown", cancelAutoScroll);
+            canvas.addEventListener("auxclick", cancelAutoScroll);
+            // Pointer events also need their default cancelled on some browsers.
+            canvas.addEventListener("pointerdown", (e: PointerEvent): void => {
+                if (e.button === 1) e.preventDefault();
+            }, { passive: false });
+
+            scene.onPointerObservable.add((pi): void => {
+                const evt = pi.event as IPointerEvent;
+                if (pi.type === PointerEventTypes.POINTERDOWN && evt.button === 1) {
+                    middlePanning = true;
+                    lastX = evt.clientX;
+                    lastY = evt.clientY;
+                    return;
+                }
+                if (pi.type === PointerEventTypes.POINTERUP && evt.button === 1) {
+                    middlePanning = false;
+                    return;
+                }
+                if (pi.type !== PointerEventTypes.POINTERMOVE || !middlePanning) return;
+
+                const cam = scene.activeCameras?.[0];
+                // MMD camera mode is driven by the motion's camera track; manual
+                // panning only makes sense on the free (arc-rotate) cameras.
+                if (!isArcRotate(cam)) {
+                    lastX = evt.clientX;
+                    lastY = evt.clientY;
+                    return;
+                }
+                const dx = evt.clientX - lastX;
+                const dy = evt.clientY - lastY;
+                lastX = evt.clientX;
+                lastY = evt.clientY;
+                if (cam.panningSensibility === 0) return;
+                cam.inertialPanningX += -dx / cam.panningSensibility;
+                cam.inertialPanningY += dy / cam.panningSensibility;
+            });
+
+            // Releasing the wheel outside the canvas must end the gesture too.
+            window.addEventListener("pointerup", (e: PointerEvent): void => {
+                if (e.button === 1) middlePanning = false;
+            });
+        }
 
         return { scene, api };
     }
