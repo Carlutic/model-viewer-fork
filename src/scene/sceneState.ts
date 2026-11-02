@@ -29,6 +29,17 @@ export interface FilterEntry {
     value: string;
 }
 
+/**
+ * One material morph (MMD "表示切替"/part toggle) exposed by the current model.
+ * The viewer only lists material morphs, since those are what author-authored
+ * outfit/part switches use.
+ */
+export interface MorphItem {
+    name: string;
+    type: number;
+    weight: number;
+}
+
 export interface SceneState {
     chosenCharName: string;
     // Display label for the chosen character (falls back to chosenCharName).
@@ -74,6 +85,10 @@ export interface SceneState {
     searchQuery: string;
     charData: CharacterData | null;
     isMobile: boolean;
+    // Material morphs (part/outfit switches) of the loaded model, and the toolbar
+    // dropdown state for toggling them.
+    morphList: MorphItem[];
+    morphPanelOpen: boolean;
 }
 
 type Listener = (state: SceneState) => void;
@@ -140,6 +155,8 @@ export function createInitialState(isMobile: boolean): SceneState {
         sortModeKey: "id",
         searchQuery: "",
         charData: null,
-        isMobile
+        isMobile,
+        morphList: [],
+        morphPanelOpen: false
     };
 }

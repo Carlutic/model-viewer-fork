@@ -35,4 +35,9 @@ export interface SceneApi {
     toggleSortAscending(): void;
     toggleSortModeKey(): void;
     setFilter(tab: "Genshin" | "HSR" | "ZZZ" | "WuWa" | "HNA" | "NTE" | "Snowbreak" | "GirlsFrontline", key: string, value: string): void;
+    // Material morphs (part/outfit switches) of the loaded model.
+    setMorphWeight(name: string, weight: number): void;
+    resetMorphs(): void;
+    toggleMorphPanel(): void;
+    closeMorphPanel(): void;
 }

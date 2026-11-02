@@ -186,6 +186,27 @@ export function Toolbar({ api, state }: Props): JSX.Element {
                 onClick={(): void => api.openSupport()}
                 alt="support"
             />
+
+            {/* Part / outfit switches (MMD material morphs). Only shown for models that
+                actually expose material morphs (e.g. "全部件" models with P1/P2/P3
+                accessory sets). `data-morph-toggle` lets MorphPanel ignore clicks on
+                this button so it toggles instead of closing first. */}
+            {state.morphList.length > 0 && (
+                <img
+                    data-morph-toggle
+                    src={resUrl(state.darkMode ? "res/assets/parts_light.png" : "res/assets/parts.png")}
+                    class={btnStyle}
+                    style={{
+                        position: "absolute",
+                        left: `${gap}px`,
+                        top: topAt(5),
+                        background: state.morphPanelOpen ? "rgba(119,119,119,0.5)" : "transparent",
+                        borderRadius: "10px"
+                    }}
+                    onClick={(): void => api.toggleMorphPanel()}
+                    alt="parts"
+                />
+            )}
         </>
     );
 }

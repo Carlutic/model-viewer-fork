@@ -1,5 +1,4 @@
-import { baseUrl, resUrl, snowbreakBaseUrl, girlsFrontlineBaseUrl, urlBasePath } from "../config";
-// for use loading screen, we need to import following module.
+import { baseUrl, resUrl, snowbreakBaseUrl, girlsFrontlineBaseUrl, urlBasePath } from "../config";// for use loading screen, we need to import following module.
 import "@babylonjs/core/Loading/loadingScreen";
 // for cast shadow, we need to import following module.
 import "@babylonjs/core/Lights/Shadows/shadowGeneratorSceneComponent";
@@ -49,10 +48,11 @@ import { ShadowOnlyMaterial } from "@babylonjs/materials/shadowOnly/shadowOnlyMa
 import type { MmdAnimation } from "babylon-mmd/esm/Loader/Animation/mmdAnimation";
 import { MmdStandardMaterialBuilder } from "babylon-mmd/esm/Loader/mmdStandardMaterialBuilder";
 import { BvmdLoader } from "babylon-mmd/esm/Loader/Optimized/bvmdLoader";
-import { RegisterDxBmpTextureLoader } from "babylon-mmd/esm/Loader/registerDxBmpTextureLoader";
-import { SdefInjector } from "babylon-mmd/esm/Loader/sdefInjector";
+import { RegisterDxBmpTextureLoader } from "babylon-mmd/esm/Loader/registerDxBmpTextureLoader";import { SdefInjector } from "babylon-mmd/esm/Loader/sdefInjector";
 import { StreamAudioPlayer } from "babylon-mmd/esm/Runtime/Audio/streamAudioPlayer";
 import { MmdCamera } from "babylon-mmd/esm/Runtime/mmdCamera";
+import { MmdRuntimeShared } from "babylon-mmd/esm/Runtime/mmdRuntimeShared";
+import { MmdStandardMaterialProxy } from "babylon-mmd/esm/Runtime/mmdStandardMaterialProxy";
 import type { MmdMesh } from "babylon-mmd/esm/Runtime/mmdMesh";
 import { MmdRuntime } from "babylon-mmd/esm/Runtime/mmdRuntime";
 import { MmdWasmRuntime } from "babylon-mmd/esm/Runtime/Optimized/mmdWasmRuntime";
@@ -76,6 +76,12 @@ import { generateReferenceSheet } from "./referenceSheet";
 import type { SceneApi } from "./sceneApi";
 import { SceneStateStore, createInitialState } from "./sceneState";
 import type { TabMode, CharacterData, SceneState } from "./sceneState";
+
+// MMD material morphs (author-authored part/outfit toggles such as "Skirtoff" or
+// "P2-Skirt") are only applied when a material proxy is provided. Without it,
+// babylon-mmd disables material morphing for every model. The proxy is cheap and
+// only touched while a material morph actually has a non-zero weight.
+MmdRuntimeShared.MaterialProxyConstructor = MmdStandardMaterialProxy as never;
 
 export interface SceneBuildResult {
     scene: Scene;
@@ -1042,6 +1048,18 @@ export class SceneBuilder implements ISceneBuilder {
             }
         }
 
+        // Material morphs (author part/outfit toggles) of the currently loaded model.
+        // Only material morphs that actually target materials are exposed; separator
+        // entries some authors add ("Skirt---------") have no targets and are skipped.
+        function refreshMorphList(): void {
+            const morphs: any[] = (mmdModel as any)?.morph?.morphs ?? [];
+            const items = morphs
+                .filter((m): boolean => m.type === 8 && Array.isArray(m.materialElements) && m.materialElements.length > 0)
+                .map((m): { name: string; type: number; weight: number } => ({ name: m.name, type: 8, weight: 0 }));
+            store.set({ morphList: items, morphPanelOpen: false });
+        }
+        refreshMorphList();
+
         const previousModelState = {
             wasAnimationPlaying: false,
             previousSeekTimeFrame: 0,
@@ -1404,7 +1422,7 @@ export class SceneBuilder implements ISceneBuilder {
             // Keep the displayed label in sync with the Chinese/pretty displayName
             // while `chosenCharName` stays the ASCII key used for lookups/URLs.
             chosenCharDisplay = chosenCharLocal?.displayName ?? chosenCharLocal?.name ?? chosenCharDisplay;
-            store.set({ chosenCharDisplay });
+            store.set({ chosenCharDisplay, morphList: [], morphPanelOpen: false });
             if (!mmdRuntime) {
                 mmdRuntime = createMmdRuntime(physicsModeOn);
             }
@@ -1498,6 +1516,8 @@ export class SceneBuilder implements ISceneBuilder {
             } catch (error) {
                 console.error("Failed to create MMD model:", error);
             }
+            // Refresh the part/outfit morph list for the newly loaded model.
+            refreshMorphList();
 
             headBone = mmdModel ? mmdModel.runtimeBones.find((bone: any) => bone.name === "頭") : undefined;
             bodyBone = mmdModel ? mmdModel.runtimeBones.find((bone: any) => bone.name === "センター") : undefined;
@@ -2179,6 +2199,32 @@ export class SceneBuilder implements ISceneBuilder {
                     cur.push({ key, value });
                 }
                 store.set({ [filterKey]: cur } as any);
+            },
+            // Material morphs (part/outfit switches) — see the morph panel UI.
+            setMorphWeight: (name: string, weight: number): void => {
+                const model = mmdModel as any;
+                if (!model?.morph) return;
+                model.morph.setMorphWeight(name, weight);
+                store.set({
+                    morphList: store.get().morphList.map((m): { name: string; type: number; weight: number } =>
+                        m.name === name ? { ...m, weight } : m)
+                });
+            },
+            resetMorphs: (): void => {
+                const model = mmdModel as any;
+                if (!model?.morph) return;
+                for (const m of store.get().morphList) {
+                    model.morph.setMorphWeight(m.name, 0);
+                }
+                store.set({
+                    morphList: store.get().morphList.map((m): { name: string; type: number; weight: number } => ({ ...m, weight: 0 }))
+                });
+            },
+            toggleMorphPanel: (): void => {
+                store.set({ morphPanelOpen: !store.get().morphPanelOpen });
+            },
+            closeMorphPanel: (): void => {
+                store.set({ morphPanelOpen: false });
             }
         };
 

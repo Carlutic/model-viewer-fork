@@ -4,6 +4,7 @@ import type { SceneApi } from "../scene/sceneApi";
 import { CharacterPanel } from "./components/CharacterPanel";
 import { CharNameOverlay } from "./components/CharNameOverlay";
 import { DisclaimerText } from "./components/DisclaimerText";
+import { MorphPanel } from "./components/MorphPanel";
 import { Toolbar } from "./components/Toolbar";
 import { TrackPanel } from "./components/TrackPanel";
 import { useSceneState } from "./hooks/useSceneState";
@@ -32,6 +33,7 @@ export function App({ api }: { api: SceneApi }): JSX.Element {
             />
             <DisclaimerText darkMode={state.darkMode} />
             <Toolbar api={api} state={state} />
+            <MorphPanel api={api} state={state} />
             <TrackPanel api={api} open={state.isTrackPanelOpen} />
             <CharacterPanel api={api} state={state} />
         </>
