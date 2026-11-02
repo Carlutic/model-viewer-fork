@@ -25,6 +25,23 @@ function neutralizeGreenHairOutline(material: MmdStandardMaterial): void {
     material.outlineColor = new Color3(luminance, luminance, luminance);
 }
 
+/**
+ * Girls' Frontline game-extracted models ship "Emotions"/"Emotion1..2"/"表情1..2"
+ * materials that draw manga emotion-effect cards (the `extra.png` texture sheet,
+ * e.g. a full-screen cyan swirl). They are meant for video-style emphasis, are
+ * visible by default in MMD, and look like a giant background in a character viewer.
+ * Hide them; the character itself and all outfit/expression switches are unaffected.
+ */
+const EFFECT_MATERIAL = /^(emotions?\(?[^)]*\)?|emotion\d+|表情\d*|effects?\d*|エフェクト\d*)$/i;
+
+function hideEffectMaterial(material: MmdStandardMaterial): void {
+    const name = (material.name ?? "").trim();
+    if (!EFFECT_MATERIAL.test(name)) return;
+    material.alpha = 0;
+    material.transparencyMode = Material.MATERIAL_ALPHABLEND;
+    material.disableDepthWrite = true;
+}
+
 // Keep exact logic from original callbacks — exported so SceneBuilder can assign them.
 export const afterBuildSingleMaterialDefault = (material: MmdStandardMaterial): void => {
     material.forceDepthWrite = true;
@@ -39,6 +56,7 @@ export const afterBuildSingleMaterialDefault = (material: MmdStandardMaterial): 
         material.alphaCutOff = 0.01;
     }
     neutralizeGreenHairOutline(material);
+    hideEffectMaterial(material);
 };
 
 export const afterBuildSingleMaterialSt = (material: MmdStandardMaterial): void => {
@@ -54,4 +72,5 @@ export const afterBuildSingleMaterialSt = (material: MmdStandardMaterial): void 
         material.alphaCutOff = 0.01;
     }
     neutralizeGreenHairOutline(material);
+    hideEffectMaterial(material);
 };
