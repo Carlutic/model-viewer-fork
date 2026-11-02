@@ -10,6 +10,10 @@ export interface BaseCharData {
     image: string;
     pmx: string;
     exception?: boolean;   // when true, load WITHOUT skeleton/morph building
+    // Optional per-entry asset root. Entries that live in a separate model library
+    // (e.g. the Snowbreak repo) set this to an absolute / root-relative URL; entries
+    // from the upstream phoshco.github.io JSONs leave it unset (global baseUrl used).
+    base?: string;
 }
 
 export interface GenshinCharData extends BaseCharData {
@@ -21,4 +25,5 @@ export interface ZZZCharData extends BaseCharData { region: string }
 export interface WuwaCharData extends BaseCharData {}
 export interface HNACharData extends BaseCharData {}
 export interface NTECharData extends BaseCharData {}
+export interface SnowbreakCharData extends BaseCharData {}
 export interface ExtraCharData extends BaseCharData {}

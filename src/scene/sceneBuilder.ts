@@ -1,4 +1,4 @@
-import { baseUrl, resUrl, urlBasePath } from "../config";
+import { baseUrl, resUrl, snowbreakBaseUrl, urlBasePath } from "../config";
 // for use loading screen, we need to import following module.
 import "@babylonjs/core/Loading/loadingScreen";
 // for cast shadow, we need to import following module.
@@ -68,7 +68,7 @@ import type { ISceneBuilder } from "../baseRuntime";
 import { CustomLoadingScreen } from "../CustomLoadingScreen";
 import { FirebaseInstance } from "../fb";
 import { mobileMmdPlayerControl } from "../mobileMmdPlayerControl";
-import type { BaseCharData, GenshinCharData, HSRCharData, ZZZCharData, WuwaCharData, HNACharData, NTECharData, ExtraCharData } from "../sceneBuilder.types";
+import type { BaseCharData, GenshinCharData, HSRCharData, ZZZCharData, WuwaCharData, HNACharData, NTECharData, SnowbreakCharData, ExtraCharData } from "../sceneBuilder.types";
 import { normalize, getFirstDigit, findCharByName, findCharById, findAllCharsByName, createCharacterSlug } from "../sceneBuilder.utils";
 import { afterBuildSingleMaterialDefault, afterBuildSingleMaterialSt } from "../sceneBuilder.materials";
 import { getFiltersForTab } from "../ui/components/filters/filterDefs";
@@ -114,6 +114,22 @@ export class SceneBuilder implements ISceneBuilder {
         const hnaSkinCharDatas = await (await fetch(`${baseUrl}hna/skins.json`)).json();
         const nteCharDatas = await (await fetch(`${baseUrl}nte/nte.json`)).json();
         const nteSkinCharDatas = await (await fetch(`${baseUrl}nte/skins.json`)).json();
+        // Snowbreak: Containment Zone model library. Bundled under res/ locally
+        // (see snowbreakBaseUrl in config.ts); entries carry their own asset root
+        // so portraits and PMX files resolve from the library, not from baseUrl.
+        // The library is optional: a deployment without those files should still
+        // boot the rest of the viewer instead of failing on a 404.
+        const snowbreakBase = snowbreakBaseUrl();
+        let snowbreakCharDatas: BaseCharData[] = [];
+        let snowbreakSkinCharDatas: BaseCharData[] = [];
+        try {
+            snowbreakCharDatas = await (await fetch(`${snowbreakBase}snowbreak.json`)).json();
+            snowbreakSkinCharDatas = await (await fetch(`${snowbreakBase}skins.json`)).json();
+            for (const c of snowbreakCharDatas) c.base = snowbreakBase;
+            for (const c of snowbreakSkinCharDatas) c.base = snowbreakBase;
+        } catch (error) {
+            console.warn("Snowbreak model library is unavailable; skipping the category:", error);
+        }
 
         const extraDataArray = extraCharDatas as ExtraCharData[];
         const charDataArray = genshinCharDatas as GenshinCharData[];
@@ -128,21 +144,26 @@ export class SceneBuilder implements ISceneBuilder {
         const hnaSkinDataArray = hnaSkinCharDatas as HNACharData[];
         const nteCharDataArray = nteCharDatas as NTECharData[];
         const nteSkinDataArray = nteSkinCharDatas as NTECharData[];
+        const snowbreakCharDataArray = snowbreakCharDatas as SnowbreakCharData[];
+        const snowbreakSkinDataArray = snowbreakSkinCharDatas as SnowbreakCharData[];
         const arraysToSort = [
             charDataArray, genshinSkinDataArray, hsrSkinDataArray, zzzSkinDataArray, wuwaSkinDataArray,
             hsrCharDataArray, zzzCharDataArray, wuwaCharDataArray,
-            hnaCharDataArray, hnaSkinDataArray, nteCharDataArray, nteSkinDataArray
+            hnaCharDataArray, hnaSkinDataArray, nteCharDataArray, nteSkinDataArray,
+            snowbreakCharDataArray, snowbreakSkinDataArray
         ];
         arraysToSort.forEach(a => a.sort((x, y) => y.id - x.id));
 
-        type AllCharData = GenshinCharData | HSRCharData | ZZZCharData | WuwaCharData | NTECharData;
+        type AllCharData = GenshinCharData | HSRCharData | ZZZCharData | WuwaCharData | NTECharData | SnowbreakCharData;
         const allCharDataArray: AllCharData[] = [
             ...charDataArray, ...hsrCharDataArray, ...zzzCharDataArray,
-            ...wuwaCharDataArray, ...hnaCharDataArray, ...nteCharDataArray
+            ...wuwaCharDataArray, ...hnaCharDataArray, ...nteCharDataArray,
+            ...snowbreakCharDataArray
         ];
         const allSkinCharDataArray: AllCharData[] = [
             ...genshinSkinDataArray, ...hsrSkinDataArray, ...zzzSkinDataArray,
-            ...wuwaSkinDataArray, ...hnaSkinDataArray, ...nteSkinDataArray
+            ...wuwaSkinDataArray, ...hnaSkinDataArray, ...nteSkinDataArray,
+            ...snowbreakSkinDataArray
         ];
         const miniSearchInstance = new miniSearch({
             fields: ["name"],
@@ -163,6 +184,7 @@ export class SceneBuilder implements ISceneBuilder {
                 else if (tabById == 3) { fallbackItem = findCharByName(zzzCharDataArray, results[0].name); tabModeLocal = "ZZZ"; }
                 else if (tabById == 4) { fallbackItem = findCharByName(wuwaCharDataArray, results[0].name); tabModeLocal = "WuWa"; }
                 else if (tabById == 5) { fallbackItem = findCharByName(hnaCharDataArray, results[0].name); tabModeLocal = "HNA"; }
+                else if (tabById == 7) { fallbackItem = findCharByName(snowbreakCharDataArray, results[0].name); tabModeLocal = "Snowbreak"; }
                 else { fallbackItem = findCharByName(nteCharDataArray, results[0].name); tabModeLocal = "NTE"; }
                 if (!isLocal) {
                     try {
@@ -432,7 +454,7 @@ export class SceneBuilder implements ISceneBuilder {
                 ...(isSpecialModelChar(chosenChar) ? { buildSkeleton: false, buildMorph: false } : {})
             };
             promises.push(LoadAssetContainerAsync(
-                baseUrl + chosenChar.directory + "/" + chosenChar.pmx,
+                (chosenChar.base ?? baseUrl) + chosenChar.directory + "/" + chosenChar.pmx,
                 scene,
                 {
                     onProgress: (event) => updateLoadingText(2, `Loading model... ${event.loaded}/${event.total} (${Math.floor(event.loaded * 100 / event.total)}%)`),
@@ -932,6 +954,8 @@ export class SceneBuilder implements ISceneBuilder {
             hnaSkins: hnaSkinDataArray,
             nte: nteCharDataArray,
             nteSkins: nteSkinDataArray,
+            snowbreak: snowbreakCharDataArray,
+            snowbreakSkins: snowbreakSkinDataArray,
             allSkins: allSkinCharDataArray as BaseCharData[]
         };
 
@@ -980,7 +1004,8 @@ export class SceneBuilder implements ISceneBuilder {
                 ZZZ: zzzSkinDataArray,
                 WuWa: wuwaSkinDataArray,
                 HNA: hnaSkinDataArray,
-                NTE: nteSkinDataArray
+                NTE: nteSkinDataArray,
+                Snowbreak: snowbreakSkinDataArray
             };
             const skinArray = initialSkinArrays[firstTabMode as string];
             if (skinArray) {
@@ -1148,7 +1173,8 @@ export class SceneBuilder implements ISceneBuilder {
                                 firstDigit === 4 ? "WuWa" :
                                     firstDigit === 5 ? "HNA" :
                                         firstDigit === 6 ? "NTE" :
-                                            undefined;
+                                            firstDigit === 7 ? "Snowbreak" :
+                                                undefined;
                 if (derivedTab && tabMode !== derivedTab) {
                     tabMode = derivedTab;
                     store.set({ tabMode });
@@ -1161,6 +1187,7 @@ export class SceneBuilder implements ISceneBuilder {
                 else if (firstDigit === 4 || tabMode === "WuWa") skinChars = findAllCharsByName(wuwaSkinDataArray, chosenChar!.name);
                 else if (firstDigit === 5 || tabMode === "HNA") skinChars = findAllCharsByName(hnaSkinDataArray, chosenChar!.name);
                 else if (firstDigit === 6 || tabMode === "NTE") skinChars = findAllCharsByName(nteSkinDataArray, chosenChar!.name);
+                else if (firstDigit === 7 || tabMode === "Snowbreak") skinChars = findAllCharsByName(snowbreakSkinDataArray, chosenChar!.name);
                 if (skinChars && skinChars.length > 0) {
                     store.set({ hasSkinButton: true });
                 }
@@ -1247,6 +1274,16 @@ export class SceneBuilder implements ISceneBuilder {
                         samePrev: () => prevCharName == chosenCharName && prevCharId == chosenChar?.id,
                         findForNonSame: () => findCharById(nteCharDataArray, nextId!)
                     };
+                } else if (firstDigit == 7 || tabMode == "Snowbreak") {
+                    tabMode = "Snowbreak";
+                    cfg = {
+                        tab: "Snowbreak",
+                        mainArray: snowbreakCharDataArray,
+                        skinArray: snowbreakSkinDataArray,
+                        resetToNormalArray: snowbreakCharDataArray,
+                        samePrev: () => prevCharName == chosenCharName && prevCharId == chosenChar?.id,
+                        findForNonSame: () => findCharById(snowbreakCharDataArray, nextId!)
+                    };
                 }
 
                 if (cfg) {
@@ -1295,7 +1332,8 @@ export class SceneBuilder implements ISceneBuilder {
                                     (firstDigit === 4) ? wuwaCharDataArray :
                                         (firstDigit === 5) ? hnaCharDataArray :
                                             (firstDigit === 6) ? nteCharDataArray :
-                                                charDataArray,
+                                                (firstDigit === 7) ? snowbreakCharDataArray :
+                                                    charDataArray,
                         chosenCharName
                     );
                     await createCharacter(chosenChar);
@@ -1335,7 +1373,7 @@ export class SceneBuilder implements ISceneBuilder {
                 };
 
                 promises.push(LoadAssetContainerAsync(
-                    baseUrl + chosenCharLocal.directory + "/" + chosenCharLocal.pmx,
+                    (chosenCharLocal.base ?? baseUrl) + chosenCharLocal.directory + "/" + chosenCharLocal.pmx,
                     scene,
                     {
                         onProgress: (event) => updateLoadingText(2, `Loading model... ${event.loaded}/${event.total} (${Math.floor(event.loaded * 100 / event.total)}%)`),
@@ -1350,7 +1388,7 @@ export class SceneBuilder implements ISceneBuilder {
             } else {
                 charScreenMode = true;
             }
-            if (tabMode == "WuWa" || tabMode == "ZZZ" || tabMode == "NTE" || (tabMode == "None" && (firstDigitGlobal == 4 || firstDigitGlobal == 3 || firstDigitGlobal == 6))) {
+            if (tabMode == "WuWa" || tabMode == "ZZZ" || tabMode == "NTE" || tabMode == "Snowbreak" || (tabMode == "None" && (firstDigitGlobal == 4 || firstDigitGlobal == 3 || firstDigitGlobal == 6 || firstDigitGlobal == 7))) {
                 charScreenMode = true;
                 charScreenElement = "Universal";
             } else if (tabMode == "HSR" || tabMode == "HNA" || (tabMode == "None" && (firstDigitGlobal == 2 || firstDigitGlobal == 5))) {
@@ -1563,7 +1601,7 @@ export class SceneBuilder implements ISceneBuilder {
 
             try {
                 secondModelRes = await LoadAssetContainerAsync(
-                    baseUrl + secondChar.directory + "/" + secondChar.pmx,
+                    (secondChar.base ?? baseUrl) + secondChar.directory + "/" + secondChar.pmx,
                     scene,
                     {
                         onProgress: (event) => customLoadingScreen.setProgress(

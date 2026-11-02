@@ -142,6 +142,12 @@ export const nteFilters: GameFilters = {
     ]
 };
 
+export const snowbreakFilters: GameFilters = {
+    rarity: [],
+    element: [],
+    weapon: []
+};
+
 export function getFiltersForTab(tab: string): GameFilters {
     switch (tab) {
         case "Genshin": return genshinFilters;
@@ -150,6 +156,7 @@ export function getFiltersForTab(tab: string): GameFilters {
         case "WuWa": return wuwaFilters;
         case "HNA": return hnaFilters;
         case "NTE": return nteFilters;
+        case "Snowbreak": return snowbreakFilters;
         default: return genshinFilters;
     }
 }

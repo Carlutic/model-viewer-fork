@@ -42,7 +42,7 @@ function CharacterGridInner({
                             onMouseLeave={(): void => setHoverName("")}
                             title={char.name}
                         >
-                            <img src={`${baseUrl}${char.image}`} class="w-full h-full object-cover" />
+                            <img src={`${char.base ?? baseUrl}${char.image}`} class="w-full h-full object-cover" />
                             {hasSkin && (
                                 <img
                                     src={resUrl("res/assets/skin_icon.png")}

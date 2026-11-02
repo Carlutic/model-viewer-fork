@@ -1,6 +1,6 @@
-import type { BaseCharData, GenshinCharData, HSRCharData, ZZZCharData, WuwaCharData, HNACharData, NTECharData } from "../sceneBuilder.types";
+import type { BaseCharData, GenshinCharData, HSRCharData, ZZZCharData, WuwaCharData, HNACharData, NTECharData, SnowbreakCharData } from "../sceneBuilder.types";
 
-export type TabMode = "Genshin" | "HSR" | "ZZZ" | "WuWa" | "HNA" | "NTE" | "None";
+export type TabMode = "Genshin" | "HSR" | "ZZZ" | "WuWa" | "HNA" | "NTE" | "Snowbreak" | "None";
 
 export type SortModeKey = "id" | "name";
 
@@ -17,6 +17,8 @@ export interface CharacterData {
     hnaSkins: HNACharData[];
     nte: NTECharData[];
     nteSkins: NTECharData[];
+    snowbreak: SnowbreakCharData[];
+    snowbreakSkins: SnowbreakCharData[];
     allSkins: BaseCharData[];
 }
 
@@ -60,6 +62,7 @@ export interface SceneState {
     wuwaFilter: FilterEntry[];
     hnaFilter: FilterEntry[];
     nteFilter: FilterEntry[];
+    snowbreakFilter: FilterEntry[];
     sortModeAscending: boolean;
     sortModeKey: SortModeKey;
     searchQuery: string;
@@ -120,6 +123,7 @@ export function createInitialState(isMobile: boolean): SceneState {
         wuwaFilter: [{ key: "id", value: "4000" }],
         hnaFilter: [{ key: "id", value: "5000" }],
         nteFilter: [{ key: "id", value: "6000" }],
+        snowbreakFilter: [{ key: "id", value: "7000" }],
         sortModeAscending: false,
         sortModeKey: "id",
         searchQuery: "",

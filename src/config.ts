@@ -23,3 +23,18 @@ export function urlBasePath(): string {
     if (typeof window === "undefined") return "";
     return window.location.hostname.includes("github.io") ? "/model-viewer" : "";
 }
+
+/**
+ * Base URL of the Snowbreak: Containment Zone (尘白禁区) model library.
+ *
+ * Local dev: the model files live in res/snowbreak/ (gitignored, bundled by the
+ * dev server / build like every other res asset), so they resolve through resUrl().
+ *
+ * Deployed elsewhere: replace this with the external library URL, e.g.
+ *   "https://<your-user>.github.io/snowbreak/"
+ * If you do that, the character entries loaded from it already carry an absolute
+ * `base` field, and cross-origin requests only need GitHub Pages' CORS headers.
+ */
+export function snowbreakBaseUrl(): string {
+    return resUrl("res/snowbreak/");
+}
