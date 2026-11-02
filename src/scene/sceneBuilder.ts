@@ -426,12 +426,14 @@ export class SceneBuilder implements ISceneBuilder {
         let prevCharName: string;
         let prevCharId: number;
         let chosenCharName = item;
+        let chosenCharDisplay = "";
         const initialCharacterSlug = createCharacterSlug(chosenCharName);
         let chosenChar: BaseCharData | undefined;
         let tabMode: TabMode = "Genshin";
         let firstTabMode: TabMode = tabMode;
         [chosenChar, firstTabMode] = findFirstCharByName(chosenCharName);
         chosenCharName = chosenChar!.name;
+        chosenCharDisplay = chosenChar!.displayName ?? chosenChar!.name;
         prevCharId = chosenChar!.id;
         charScreenElement = chosenChar!.element;
         if (firstTabMode == "HSR") {
@@ -974,6 +976,7 @@ export class SceneBuilder implements ISceneBuilder {
         storeRef = store;
         store.set({
             chosenCharName,
+            chosenCharDisplay,
             chosenCharId: chosenChar!.id,
             tabMode: firstTabMode,
             darkMode: bg_bool,
@@ -1365,6 +1368,10 @@ export class SceneBuilder implements ISceneBuilder {
             promises = [];
             loadingTexts = [];
             prevCharId = chosenCharLocal!.id;
+            // Keep the displayed label in sync with the Chinese/pretty displayName
+            // while `chosenCharName` stays the ASCII key used for lookups/URLs.
+            chosenCharDisplay = chosenCharLocal?.displayName ?? chosenCharLocal?.name ?? chosenCharDisplay;
+            store.set({ chosenCharDisplay });
             if (!mmdRuntime) {
                 mmdRuntime = createMmdRuntime(physicsModeOn);
             }
@@ -1699,7 +1706,12 @@ export class SceneBuilder implements ISceneBuilder {
             // Posing is single-character only: exit pose mode and disable the
             // toolbar button while a second character is present.
             poseState.controller.disable();
-            store.set({ secondCharName: secondChar.name, poseModeOn: false, canPose: false });
+            store.set({
+                secondCharName: secondChar.name,
+                secondCharDisplay: secondChar.displayName ?? secondChar.name,
+                poseModeOn: false,
+                canPose: false
+            });
             // Restore perf optimizations once the second model has rendered.
             scene.onAfterRenderObservable.addOnce(() => {
                 engine.hideLoadingUI();
@@ -1733,7 +1745,7 @@ export class SceneBuilder implements ISceneBuilder {
             camera.setTarget(new Vector3(primaryOrigX, 10 * worldScale, 0));
             stillCamera.target = new Vector3(primaryOrigX, 10 * worldScale, 1);
             // Posing becomes available again now that the primary is alone.
-            store.set({ secondCharName: "", canPose: poseState.controller.hasBones });
+            store.set({ secondCharName: "", secondCharDisplay: "", canPose: poseState.controller.hasBones });
         }
 
         // for scaling camera to model height
@@ -2065,7 +2077,7 @@ export class SceneBuilder implements ISceneBuilder {
                         pipeline: defaultPipeline,
                         modelMeshes: modelMesh?.metadata?.meshes ? [...modelMesh.metadata.meshes] : [],
                         headWorldPos,
-                        characterName: chosenCharName,
+                        characterName: chosenChar?.displayName ?? chosenCharName,
                         element: elementVal,
                         weaponType: weaponVal,
                         elementIcon: elementIconPath ? resUrl(elementIconPath) : "",

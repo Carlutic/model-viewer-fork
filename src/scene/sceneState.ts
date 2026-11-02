@@ -29,9 +29,12 @@ export interface FilterEntry {
 
 export interface SceneState {
     chosenCharName: string;
+    // Display label for the chosen character (falls back to chosenCharName).
+    chosenCharDisplay: string;
     chosenCharId: number;
     // Secondary character shown beside the primary ("" when none).
     secondCharName: string;
+    secondCharDisplay: string;
     // When true, the next character-panel pick ADDS a second character
     // instead of replacing the primary one.
     secondPickMode: boolean;
@@ -100,8 +103,10 @@ export class SceneStateStore {
 export function createInitialState(isMobile: boolean): SceneState {
     return {
         chosenCharName: "",
+        chosenCharDisplay: "",
         chosenCharId: 0,
         secondCharName: "",
+        secondCharDisplay: "",
         secondPickMode: false,
         tabMode: "Genshin",
         darkMode: true,

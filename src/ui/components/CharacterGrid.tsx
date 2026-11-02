@@ -38,9 +38,9 @@ function CharacterGridInner({
                             class="relative rounded-lg overflow-hidden aspect-square"
                             style={{ background: bg }}
                             onClick={async (): Promise<void> => await onCharClick(char)}
-                            onMouseEnter={(): void => setHoverName(char.name)}
+                            onMouseEnter={(): void => setHoverName(char.displayName ?? char.name)}
                             onMouseLeave={(): void => setHoverName("")}
-                            title={char.name}
+                            title={char.displayName ?? char.name}
                         >
                             <img src={`${char.base ?? baseUrl}${char.image}`} class="w-full h-full object-cover" />
                             {hasSkin && (

@@ -25,7 +25,11 @@ export function App({ api }: { api: SceneApi }): JSX.Element {
 
     return (
         <>
-            <CharNameOverlay name={state.chosenCharName} secondName={state.secondCharName} darkMode={state.darkMode} />
+            <CharNameOverlay
+                name={state.chosenCharDisplay || state.chosenCharName}
+                secondName={state.secondCharDisplay || state.secondCharName}
+                darkMode={state.darkMode}
+            />
             <DisclaimerText darkMode={state.darkMode} />
             <Toolbar api={api} state={state} />
             <TrackPanel api={api} open={state.isTrackPanelOpen} />
