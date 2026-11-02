@@ -1053,9 +1053,21 @@ export class SceneBuilder implements ISceneBuilder {
         // entries some authors add ("Skirt---------") have no targets and are skipped.
         function refreshMorphList(): void {
             const morphs: any[] = (mmdModel as any)?.morph?.morphs ?? [];
-            const items = morphs
-                .filter((m): boolean => m.type === 8 && Array.isArray(m.materialElements) && m.materialElements.length > 0)
-                .map((m): { name: string; type: number; weight: number } => ({ name: m.name, type: 8, weight: 0 }));
+            const typeBuckets: { type: number; items: { name: string; type: number; weight: number }[] }[] = [
+                { type: 8, items: [] }, // material morphs → part/outfit switches (P1/P2/P3, skirt, shoes…)
+                { type: 1, items: [] }, // vertex morphs → facial expressions
+                { type: 2, items: [] }  // bone morphs → expression/pose helpers shipped by the author
+            ];
+            for (const m of morphs) {
+                const bucket = typeBuckets.find((b): boolean => b.type === m.type);
+                if (!bucket) continue;
+                const hasTargets = m.type === 8
+                    ? Array.isArray(m.materialElements) && m.materialElements.length > 0
+                    : m.elements != null && m.elements.length > 0;
+                if (!hasTargets) continue; // separator entries ("Skirt-----------") have no targets
+                bucket.items.push({ name: m.name, type: m.type, weight: 0 });
+            }
+            const items = typeBuckets.flatMap((b): { name: string; type: number; weight: number }[] => b.items);
             store.set({ morphList: items, morphPanelOpen: false });
         }
         refreshMorphList();
@@ -1972,6 +1984,24 @@ export class SceneBuilder implements ISceneBuilder {
                 // videoWidth/Height are 0 until metadata loads; re-fit once known.
                 videoEl.addEventListener("loadedmetadata", () => {
                     if (videoBgTexture === tex) coverVideoUVs(tex);
+                }, { once: true });
+                // Render the first frame even while the MMD timeline is paused: the
+                // video element stays on a black frame until it is played once, which
+                // made switching to a PV track look like an empty black background.
+                // Muted autoplay is allowed, and we pause again right after the first
+                // frame is decoded unless the timeline is already playing.
+                videoEl.addEventListener("loadeddata", () => {
+                    if (videoBgTexture !== tex) return;
+                    if (!mmdRuntime.isAnimationPlaying) {
+                        const p = videoEl.play();
+                        if (p !== undefined) {
+                            p.then((): void => {
+                                if (!mmdRuntime.isAnimationPlaying && videoBgTexture === tex) {
+                                    videoEl.pause();
+                                }
+                            }).catch((): void => { /* autoplay blocked; sync observer retries */ });
+                        }
+                    }
                 }, { once: true });
                 layer.texture = videoBgTexture;
                 scene.clearColor = new Color4(0, 0, 0, 1.0);

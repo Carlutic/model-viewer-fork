@@ -44,12 +44,17 @@ export function TrackPanel({ api, open }: Props): JSX.Element | null {
             {motionConfig.map((track): JSX.Element => (
                 <button
                     key={track.name}
-                    class="block w-full text-left px-3 py-2 hover:bg-[rgb(64,68,70)]"
+                    class="flex w-full items-center justify-between gap-2 px-3 py-2 text-left hover:bg-[rgb(64,68,70)]"
                     onClick={async (): Promise<void> => {
                         await api.changeMotion(track.name);
                     }}
                 >
-                    {track.name}
+                    <span class="truncate">{track.name}</span>
+                    {(track as { videoFile?: string }).videoFile && (
+                        <span class="shrink-0 rounded bg-[rgb(150,90,90)] px-1.5 py-0.5 text-[10px] font-semibold tracking-wide">
+                            PV
+                        </span>
+                    )}
                 </button>
             ))}
         </div>
