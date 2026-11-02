@@ -568,6 +568,22 @@ export class SceneBuilder implements ISceneBuilder {
             console.error("Failed to create MMD model:", error);
         }
 
+        // Per-model hidden parts (e.g. converted "all parts" models that include a
+        // giant effect/crystal mesh covering the stage). List material names in the
+        // manifest entry's `hideMaterials`.
+        function hideListedMaterials(entry: BaseCharData | undefined): void {
+            const list = entry?.hideMaterials;
+            if (!list || list.length === 0) return;
+            const root = (mmdModel as any)?.mesh;
+            if (!root || typeof root.getChildMeshes !== "function") return;
+            const wanted = new Set(list);
+            for (const m of root.getChildMeshes(false) as any[]) {
+                const matName = m.material?.name ?? m.name ?? "";
+                if (wanted.has(matName) || wanted.has(m.name ?? "")) m.setEnabled(false);
+            }
+        }
+        hideListedMaterials(chosenChar);
+
         // ── Interactive joint posing ──────────────────────────────────────────
         // A curated humanoid subset of MMD bone names kept editable so the scene
         // isn't cluttered with 100+ handles. Names absent on a given model are
@@ -1528,6 +1544,7 @@ export class SceneBuilder implements ISceneBuilder {
             } catch (error) {
                 console.error("Failed to create MMD model:", error);
             }
+            hideListedMaterials(chosenCharLocal);
             // Refresh the part/outfit morph list for the newly loaded model.
             refreshMorphList();
 
