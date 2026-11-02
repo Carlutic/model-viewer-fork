@@ -320,7 +320,10 @@ export class SceneBuilder implements ISceneBuilder {
         particleSystem.renderingGroupId = 1;
 
         let mmdRuntime: MmdRuntime | MmdWasmRuntime;
-        let physicsModeOn = false;
+        // Physics is on by default: the MMD rigid-body/joint data authored in the
+        // models (hair, skirts, tails…) should simulate without a manual toggle.
+        // The toolbar physics button still flips it off for performance.
+        let physicsModeOn = true;
 
         let motionName = motionConfig[Math.floor(Math.random() * motionConfig.length)].name;
         let audioPlayerFile = motionConfig.find((item) => item.name === motionName)!.audioPlayerFile;
