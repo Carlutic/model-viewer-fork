@@ -128,7 +128,9 @@ export function createInitialState(isMobile: boolean): SceneState {
         wuwaFilter: [{ key: "id", value: "4000" }],
         hnaFilter: [{ key: "id", value: "5000" }],
         nteFilter: [{ key: "id", value: "6000" }],
-        snowbreakFilter: [{ key: "id", value: "7000" }],
+        // Snowbreak ids are 5 digits (70001+), so the implicit id filter must be the
+        // single leading digit — "7000" would only match 70003..70009.
+        snowbreakFilter: [{ key: "id", value: "7" }],
         sortModeAscending: false,
         sortModeKey: "id",
         searchQuery: "",
