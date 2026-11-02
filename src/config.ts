@@ -27,14 +27,11 @@ export function urlBasePath(): string {
 /**
  * Base URL of the Snowbreak: Containment Zone (尘白禁区) model library.
  *
- * Local dev: the model files live in res/snowbreak/ (gitignored, bundled by the
- * dev server / build like every other res asset), so they resolve through resUrl().
- *
- * Deployed elsewhere: replace this with the external library URL, e.g.
- *   "https://<your-user>.github.io/snowbreak/"
- * If you do that, the character entries loaded from it already carry an absolute
- * `base` field, and cross-origin requests only need GitHub Pages' CORS headers.
+ * The model files are NOT bundled with this site — they live in the separate
+ * `Carlutic/snowbreak` repository and are served by its GitHub Pages site.
+ * GitHub Pages sends `Access-Control-Allow-Origin: *`, so the manifest, PMX and
+ * textures can be fetched cross-origin by both the dev server and a deployment.
  */
 export function snowbreakBaseUrl(): string {
-    return resUrl("res/snowbreak/");
+    return "https://carlutic.github.io/snowbreak/";
 }
