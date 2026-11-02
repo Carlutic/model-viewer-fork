@@ -1,4 +1,4 @@
-import { baseUrl, resUrl, snowbreakBaseUrl, urlBasePath } from "../config";
+import { baseUrl, resUrl, snowbreakBaseUrl, girlsFrontlineBaseUrl, urlBasePath } from "../config";
 // for use loading screen, we need to import following module.
 import "@babylonjs/core/Loading/loadingScreen";
 // for cast shadow, we need to import following module.
@@ -68,7 +68,7 @@ import type { ISceneBuilder } from "../baseRuntime";
 import { CustomLoadingScreen } from "../CustomLoadingScreen";
 import { FirebaseInstance } from "../fb";
 import { mobileMmdPlayerControl } from "../mobileMmdPlayerControl";
-import type { BaseCharData, GenshinCharData, HSRCharData, ZZZCharData, WuwaCharData, HNACharData, NTECharData, SnowbreakCharData, ExtraCharData } from "../sceneBuilder.types";
+import type { BaseCharData, GenshinCharData, HSRCharData, ZZZCharData, WuwaCharData, HNACharData, NTECharData, SnowbreakCharData, GirlsFrontlineCharData, ExtraCharData } from "../sceneBuilder.types";
 import { normalize, getFirstDigit, findCharByName, findCharById, findAllCharsByName, createCharacterSlug } from "../sceneBuilder.utils";
 import { afterBuildSingleMaterialDefault, afterBuildSingleMaterialSt } from "../sceneBuilder.materials";
 import { getFiltersForTab } from "../ui/components/filters/filterDefs";
@@ -131,6 +131,19 @@ export class SceneBuilder implements ISceneBuilder {
             console.warn("Snowbreak model library is unavailable; skipping the category:", error);
         }
 
+        // Girls' Frontline model library (Carlutic/girl_frontline, see config.ts).
+        const girlsFrontlineBase = girlsFrontlineBaseUrl();
+        let girlsFrontlineCharDatas: BaseCharData[] = [];
+        let girlsFrontlineSkinCharDatas: BaseCharData[] = [];
+        try {
+            girlsFrontlineCharDatas = await (await fetch(`${girlsFrontlineBase}girl_frontline.json`)).json();
+            girlsFrontlineSkinCharDatas = await (await fetch(`${girlsFrontlineBase}skins.json`)).json();
+            for (const c of girlsFrontlineCharDatas) c.base = girlsFrontlineBase;
+            for (const c of girlsFrontlineSkinCharDatas) c.base = girlsFrontlineBase;
+        } catch (error) {
+            console.warn("Girls' Frontline model library is unavailable; skipping the category:", error);
+        }
+
         const extraDataArray = extraCharDatas as ExtraCharData[];
         const charDataArray = genshinCharDatas as GenshinCharData[];
         const genshinSkinDataArray = genshinSkinCharDatas as GenshinCharData[];
@@ -146,24 +159,27 @@ export class SceneBuilder implements ISceneBuilder {
         const nteSkinDataArray = nteSkinCharDatas as NTECharData[];
         const snowbreakCharDataArray = snowbreakCharDatas as SnowbreakCharData[];
         const snowbreakSkinDataArray = snowbreakSkinCharDatas as SnowbreakCharData[];
+        const girlsFrontlineCharDataArray = girlsFrontlineCharDatas as GirlsFrontlineCharData[];
+        const girlsFrontlineSkinDataArray = girlsFrontlineSkinCharDatas as GirlsFrontlineCharData[];
         const arraysToSort = [
             charDataArray, genshinSkinDataArray, hsrSkinDataArray, zzzSkinDataArray, wuwaSkinDataArray,
             hsrCharDataArray, zzzCharDataArray, wuwaCharDataArray,
             hnaCharDataArray, hnaSkinDataArray, nteCharDataArray, nteSkinDataArray,
-            snowbreakCharDataArray, snowbreakSkinDataArray
+            snowbreakCharDataArray, snowbreakSkinDataArray,
+            girlsFrontlineCharDataArray, girlsFrontlineSkinDataArray
         ];
         arraysToSort.forEach(a => a.sort((x, y) => y.id - x.id));
 
-        type AllCharData = GenshinCharData | HSRCharData | ZZZCharData | WuwaCharData | NTECharData | SnowbreakCharData;
+        type AllCharData = GenshinCharData | HSRCharData | ZZZCharData | WuwaCharData | NTECharData | SnowbreakCharData | GirlsFrontlineCharData;
         const allCharDataArray: AllCharData[] = [
             ...charDataArray, ...hsrCharDataArray, ...zzzCharDataArray,
             ...wuwaCharDataArray, ...hnaCharDataArray, ...nteCharDataArray,
-            ...snowbreakCharDataArray
+            ...snowbreakCharDataArray, ...girlsFrontlineCharDataArray
         ];
         const allSkinCharDataArray: AllCharData[] = [
             ...genshinSkinDataArray, ...hsrSkinDataArray, ...zzzSkinDataArray,
             ...wuwaSkinDataArray, ...hnaSkinDataArray, ...nteSkinDataArray,
-            ...snowbreakSkinDataArray
+            ...snowbreakSkinDataArray, ...girlsFrontlineSkinDataArray
         ];
         const miniSearchInstance = new miniSearch({
             fields: ["name"],
@@ -185,6 +201,7 @@ export class SceneBuilder implements ISceneBuilder {
                 else if (tabById == 4) { fallbackItem = findCharByName(wuwaCharDataArray, results[0].name); tabModeLocal = "WuWa"; }
                 else if (tabById == 5) { fallbackItem = findCharByName(hnaCharDataArray, results[0].name); tabModeLocal = "HNA"; }
                 else if (tabById == 7) { fallbackItem = findCharByName(snowbreakCharDataArray, results[0].name); tabModeLocal = "Snowbreak"; }
+                else if (tabById == 8) { fallbackItem = findCharByName(girlsFrontlineCharDataArray, results[0].name); tabModeLocal = "GirlsFrontline"; }
                 else { fallbackItem = findCharByName(nteCharDataArray, results[0].name); tabModeLocal = "NTE"; }
                 if (!isLocal) {
                     try {
@@ -961,6 +978,8 @@ export class SceneBuilder implements ISceneBuilder {
             nteSkins: nteSkinDataArray,
             snowbreak: snowbreakCharDataArray,
             snowbreakSkins: snowbreakSkinDataArray,
+            girlsfrontline: girlsFrontlineCharDataArray,
+            girlsfrontlineSkins: girlsFrontlineSkinDataArray,
             allSkins: allSkinCharDataArray as BaseCharData[]
         };
 
@@ -1011,7 +1030,8 @@ export class SceneBuilder implements ISceneBuilder {
                 WuWa: wuwaSkinDataArray,
                 HNA: hnaSkinDataArray,
                 NTE: nteSkinDataArray,
-                Snowbreak: snowbreakSkinDataArray
+                Snowbreak: snowbreakSkinDataArray,
+                GirlsFrontline: girlsFrontlineSkinDataArray
             };
             const skinArray = initialSkinArrays[firstTabMode as string];
             if (skinArray) {
@@ -1180,7 +1200,8 @@ export class SceneBuilder implements ISceneBuilder {
                                     firstDigit === 5 ? "HNA" :
                                         firstDigit === 6 ? "NTE" :
                                             firstDigit === 7 ? "Snowbreak" :
-                                                undefined;
+                                                firstDigit === 8 ? "GirlsFrontline" :
+                                                    undefined;
                 if (derivedTab && tabMode !== derivedTab) {
                     tabMode = derivedTab;
                     store.set({ tabMode });
@@ -1194,6 +1215,7 @@ export class SceneBuilder implements ISceneBuilder {
                 else if (firstDigit === 5 || tabMode === "HNA") skinChars = findAllCharsByName(hnaSkinDataArray, chosenChar!.name);
                 else if (firstDigit === 6 || tabMode === "NTE") skinChars = findAllCharsByName(nteSkinDataArray, chosenChar!.name);
                 else if (firstDigit === 7 || tabMode === "Snowbreak") skinChars = findAllCharsByName(snowbreakSkinDataArray, chosenChar!.name);
+                else if (firstDigit === 8 || tabMode === "GirlsFrontline") skinChars = findAllCharsByName(girlsFrontlineSkinDataArray, chosenChar!.name);
                 if (skinChars && skinChars.length > 0) {
                     store.set({ hasSkinButton: true });
                 }
@@ -1290,6 +1312,16 @@ export class SceneBuilder implements ISceneBuilder {
                         samePrev: () => prevCharName == chosenCharName && prevCharId == chosenChar?.id,
                         findForNonSame: () => findCharById(snowbreakCharDataArray, nextId!)
                     };
+                } else if (firstDigit == 8 || tabMode == "GirlsFrontline") {
+                    tabMode = "GirlsFrontline";
+                    cfg = {
+                        tab: "GirlsFrontline",
+                        mainArray: girlsFrontlineCharDataArray,
+                        skinArray: girlsFrontlineSkinDataArray,
+                        resetToNormalArray: girlsFrontlineCharDataArray,
+                        samePrev: () => prevCharName == chosenCharName && prevCharId == chosenChar?.id,
+                        findForNonSame: () => findCharById(girlsFrontlineCharDataArray, nextId!)
+                    };
                 }
 
                 if (cfg) {
@@ -1339,7 +1371,8 @@ export class SceneBuilder implements ISceneBuilder {
                                         (firstDigit === 5) ? hnaCharDataArray :
                                             (firstDigit === 6) ? nteCharDataArray :
                                                 (firstDigit === 7) ? snowbreakCharDataArray :
-                                                    charDataArray,
+                                            (firstDigit === 8) ? girlsFrontlineCharDataArray :
+                                                charDataArray,
                         chosenCharName
                     );
                     await createCharacter(chosenChar);
@@ -1398,7 +1431,7 @@ export class SceneBuilder implements ISceneBuilder {
             } else {
                 charScreenMode = true;
             }
-            if (tabMode == "WuWa" || tabMode == "ZZZ" || tabMode == "NTE" || tabMode == "Snowbreak" || (tabMode == "None" && (firstDigitGlobal == 4 || firstDigitGlobal == 3 || firstDigitGlobal == 6 || firstDigitGlobal == 7))) {
+            if (tabMode == "WuWa" || tabMode == "ZZZ" || tabMode == "NTE" || tabMode == "Snowbreak" || tabMode == "GirlsFrontline" || (tabMode == "None" && (firstDigitGlobal == 4 || firstDigitGlobal == 3 || firstDigitGlobal == 6 || firstDigitGlobal == 7 || firstDigitGlobal == 8))) {
                 charScreenMode = true;
                 charScreenElement = "Universal";
             } else if (tabMode == "HSR" || tabMode == "HNA" || (tabMode == "None" && (firstDigitGlobal == 2 || firstDigitGlobal == 5))) {
@@ -2129,7 +2162,10 @@ export class SceneBuilder implements ISceneBuilder {
                             tab === "ZZZ" ? "zzzFilter" :
                                 tab === "WuWa" ? "wuwaFilter" :
                                     tab === "HNA" ? "hnaFilter" :
-                                        "nteFilter";
+                                        tab === "NTE" ? "nteFilter" :
+                                            tab === "Snowbreak" ? "snowbreakFilter" :
+                                                tab === "GirlsFrontline" ? "girlsfrontlineFilter" :
+                                                    "nteFilter";
                 const filterKey = filterField as keyof typeof s;
                 const cur = (s[filterKey] as { key: string; value: string }[]).slice();
                 const idx = cur.findIndex(e => e.key === key);

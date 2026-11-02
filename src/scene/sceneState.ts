@@ -1,6 +1,6 @@
-import type { BaseCharData, GenshinCharData, HSRCharData, ZZZCharData, WuwaCharData, HNACharData, NTECharData, SnowbreakCharData } from "../sceneBuilder.types";
+import type { BaseCharData, GenshinCharData, HSRCharData, ZZZCharData, WuwaCharData, HNACharData, NTECharData, SnowbreakCharData, GirlsFrontlineCharData } from "../sceneBuilder.types";
 
-export type TabMode = "Genshin" | "HSR" | "ZZZ" | "WuWa" | "HNA" | "NTE" | "Snowbreak" | "None";
+export type TabMode = "Genshin" | "HSR" | "ZZZ" | "WuWa" | "HNA" | "NTE" | "Snowbreak" | "GirlsFrontline" | "None";
 
 export type SortModeKey = "id" | "name";
 
@@ -19,6 +19,8 @@ export interface CharacterData {
     nteSkins: NTECharData[];
     snowbreak: SnowbreakCharData[];
     snowbreakSkins: SnowbreakCharData[];
+    girlsfrontline: GirlsFrontlineCharData[];
+    girlsfrontlineSkins: GirlsFrontlineCharData[];
     allSkins: BaseCharData[];
 }
 
@@ -66,6 +68,7 @@ export interface SceneState {
     hnaFilter: FilterEntry[];
     nteFilter: FilterEntry[];
     snowbreakFilter: FilterEntry[];
+    girlsfrontlineFilter: FilterEntry[];
     sortModeAscending: boolean;
     sortModeKey: SortModeKey;
     searchQuery: string;
@@ -131,6 +134,8 @@ export function createInitialState(isMobile: boolean): SceneState {
         // Snowbreak ids are 5 digits (70001+), so the implicit id filter must be the
         // single leading digit — "7000" would only match 70003..70009.
         snowbreakFilter: [{ key: "id", value: "7" }],
+        // Girls' Frontline ids are 5 digits (80001+); same single-digit prefix rule.
+        girlsfrontlineFilter: [{ key: "id", value: "8" }],
         sortModeAscending: false,
         sortModeKey: "id",
         searchQuery: "",

@@ -30,9 +30,9 @@ export interface SceneApi {
     openSupport(): void;
     generateReferenceSheet(): Promise<void>;
     setSearchQuery(q: string): void;
-    setTab(tab: "Genshin" | "HSR" | "ZZZ" | "WuWa" | "HNA" | "NTE" | "Snowbreak"): void;
+    setTab(tab: "Genshin" | "HSR" | "ZZZ" | "WuWa" | "HNA" | "NTE" | "Snowbreak" | "GirlsFrontline"): void;
     setSortAscending(asc: boolean): void;
     toggleSortAscending(): void;
     toggleSortModeKey(): void;
-    setFilter(tab: "Genshin" | "HSR" | "ZZZ" | "WuWa" | "HNA" | "NTE" | "Snowbreak", key: string, value: string): void;
+    setFilter(tab: "Genshin" | "HSR" | "ZZZ" | "WuWa" | "HNA" | "NTE" | "Snowbreak" | "GirlsFrontline", key: string, value: string): void;
 }

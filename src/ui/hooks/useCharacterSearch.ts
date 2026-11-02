@@ -14,7 +14,8 @@ export function useCharacterSearch(charData: CharacterData | null): (query: stri
             ...charData.wuwa,
             ...charData.hna,
             ...charData.nte,
-            ...charData.snowbreak
+            ...charData.snowbreak,
+            ...charData.girlsfrontline
         ];
         const ms = new miniSearch({
             fields: ["name"],
@@ -36,6 +37,7 @@ export function useCharacterSearch(charData: CharacterData | null): (query: stri
                 else if (digit === 4) arr = charData.wuwa;
                 else if (digit === 5) arr = charData.hna;
                 else if (digit === 7) arr = charData.snowbreak;
+                else if (digit === 8) arr = charData.girlsfrontline;
                 else arr = charData.nte;
                 const c = findCharByName(arr, r.name);
                 if (c) out.push(c);

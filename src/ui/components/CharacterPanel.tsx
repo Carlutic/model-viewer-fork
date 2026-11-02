@@ -14,13 +14,14 @@ interface Props {
     state: SceneState;
 }
 
-type NamedTab = "Genshin" | "HSR" | "ZZZ" | "WuWa" | "HNA" | "NTE" | "Snowbreak";
+type NamedTab = "Genshin" | "HSR" | "ZZZ" | "WuWa" | "HNA" | "NTE" | "Snowbreak" | "GirlsFrontline";
 const TAB_TEXT: { key: NamedTab; label: string; short: string }[] = [
     { key: "Genshin", label: "Genshin Impact", short: "Genshin" },
     { key: "HSR", label: "Honkai: Star Rail", short: "HSR" },
     { key: "ZZZ", label: "Zenless Zone Zero", short: "ZZZ" },
     { key: "HNA", label: "Honkai: Nexus Anima", short: "HNA" },
-    { key: "Snowbreak", label: "Snowbreak", short: "Snowbreak" }
+    { key: "Snowbreak", label: "Snowbreak", short: "Snowbreak" },
+    { key: "GirlsFrontline", label: "Girls' Frontline", short: "GF" }
 ];
 
 function getExtras(): Record<string, { name: string; image: string }> {
@@ -43,6 +44,7 @@ function getFilterField(state: SceneState, tab: TabMode): FilterEntry[] {
         case "HNA": return state.hnaFilter;
         case "NTE": return state.nteFilter;
         case "Snowbreak": return state.snowbreakFilter;
+        case "GirlsFrontline": return state.girlsfrontlineFilter;
         default: return state.genshinFilter;
     }
 }
@@ -58,6 +60,7 @@ function getMainArray(state: SceneState, tab: TabMode): BaseCharData[] {
         case "HNA": return cd.hna;
         case "NTE": return cd.nte;
         case "Snowbreak": return cd.snowbreak;
+        case "GirlsFrontline": return cd.girlsfrontline;
         default: return cd.genshin;
     }
 }
@@ -70,7 +73,7 @@ export function CharacterPanel({ api, state }: Props): JSX.Element | null {
     const [dragged, setDragged] = useState(false);
     const [hoverName, setHoverName] = useState("");
 
-    type ActiveTab = "Genshin" | "HSR" | "ZZZ" | "WuWa" | "HNA" | "NTE" | "Snowbreak";
+    type ActiveTab = "Genshin" | "HSR" | "ZZZ" | "WuWa" | "HNA" | "NTE" | "Snowbreak" | "GirlsFrontline";
     const activeTab: ActiveTab = state.tabMode === "None" ? "Genshin" : state.tabMode;
     const filters = getFiltersForTab(activeTab);
     const filterArray = getFilterField(state, activeTab);

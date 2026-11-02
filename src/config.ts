@@ -35,3 +35,11 @@ export function urlBasePath(): string {
 export function snowbreakBaseUrl(): string {
     return "https://carlutic.github.io/snowbreak/";
 }
+
+/**
+ * Base URL of the Girls' Frontline (少女前线) model library, served from the
+ * separate `Carlutic/girl_frontline` repository's GitHub Pages site.
+ */
+export function girlsFrontlineBaseUrl(): string {
+    return "https://carlutic.github.io/girl_frontline/";
+}
