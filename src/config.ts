@@ -67,6 +67,10 @@ export function arknightsBaseUrl(): string {
  * Base URLs of the Blue Archive (碧蓝档案) model libraries. The full-resolution
  * models are split across two repositories to stay under the Pages size limit.
  */
+export function idolmasterBaseUrl(): string {
+    return "https://carlutic.github.io/idolmaster/";
+}
+
 export function blueArchiveBaseUrls(): string[] {
     return [
         "https://carlutic.github.io/bluearchive/",

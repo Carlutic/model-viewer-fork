@@ -1,6 +1,6 @@
-import type { BaseCharData, GenshinCharData, HSRCharData, ZZZCharData, WuwaCharData, HNACharData, NTECharData, SnowbreakCharData, GirlsFrontlineCharData, ArknightsCharData, BlueArchiveCharData } from "../sceneBuilder.types";
+import type { BaseCharData, GenshinCharData, HSRCharData, ZZZCharData, WuwaCharData, HNACharData, NTECharData, SnowbreakCharData, GirlsFrontlineCharData, ArknightsCharData, BlueArchiveCharData, IdolmasterCharData } from "../sceneBuilder.types";
 
-export type TabMode = "Genshin" | "HSR" | "ZZZ" | "WuWa" | "HNA" | "NTE" | "Snowbreak" | "GirlsFrontline" | "Arknights" | "BlueArchive" | "None";
+export type TabMode = "Genshin" | "HSR" | "ZZZ" | "WuWa" | "HNA" | "NTE" | "Snowbreak" | "GirlsFrontline" | "Arknights" | "BlueArchive" | "Idolmaster" | "None";
 
 export type SortModeKey = "id" | "name";
 
@@ -25,6 +25,8 @@ export interface CharacterData {
     arknightsSkins: ArknightsCharData[];
     bluearchive: BlueArchiveCharData[];
     bluearchiveSkins: BlueArchiveCharData[];
+    idolmaster: IdolmasterCharData[];
+    idolmasterSkins: IdolmasterCharData[];
     allSkins: BaseCharData[];
 }
 
@@ -86,6 +88,7 @@ export interface SceneState {
     girlsfrontlineFilter: FilterEntry[];
     arknightsFilter: FilterEntry[];
     bluearchiveFilter: FilterEntry[];
+    idolmasterFilter: FilterEntry[];
     sortModeAscending: boolean;
     sortModeKey: SortModeKey;
     searchQuery: string;
@@ -159,6 +162,7 @@ export function createInitialState(isMobile: boolean): SceneState {
         girlsfrontlineFilter: [{ key: "id", value: "8" }],
         arknightsFilter: [{ key: "id", value: "9" }],
         bluearchiveFilter: [{ key: "id", value: "10" }],
+        idolmasterFilter: [{ key: "id", value: "11" }],
         sortModeAscending: false,
         sortModeKey: "id",
         searchQuery: "",

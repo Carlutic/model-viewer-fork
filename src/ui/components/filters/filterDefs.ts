@@ -166,6 +166,12 @@ export const blueArchiveFilters: GameFilters = {
     weapon: []
 };
 
+export const idolmasterFilters: GameFilters = {
+    rarity: [],
+    element: [],
+    weapon: []
+};
+
 export function getFiltersForTab(tab: string): GameFilters {
     switch (tab) {
         case "Genshin": return genshinFilters;
@@ -178,6 +184,7 @@ export function getFiltersForTab(tab: string): GameFilters {
         case "GirlsFrontline": return girlsFrontlineFilters;
         case "Arknights": return arknightsFilters;
         case "BlueArchive": return blueArchiveFilters;
+        case "Idolmaster": return idolmasterFilters;
         default: return genshinFilters;
     }
 }
