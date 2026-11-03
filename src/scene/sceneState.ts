@@ -1,5 +1,7 @@
 import type { BaseCharData, GenshinCharData, HSRCharData, ZZZCharData, WuwaCharData, HNACharData, NTECharData, SnowbreakCharData, GirlsFrontlineCharData, ArknightsCharData, BlueArchiveCharData, IdolmasterCharData } from "../sceneBuilder.types";
 
+export type RenderPreset = "default" | "endfield" | "cinematic" | "off";
+
 export type TabMode = "Genshin" | "HSR" | "ZZZ" | "WuWa" | "HNA" | "NTE" | "Snowbreak" | "GirlsFrontline" | "Arknights" | "BlueArchive" | "Idolmaster" | "None";
 
 export type SortModeKey = "id" | "name";
@@ -76,6 +78,9 @@ export interface SceneState {
     videoBgActive: boolean;
     isCharPanelOpen: boolean;
     isTrackPanelOpen: boolean;
+    isRenderPanelOpen: boolean;
+    // Active render preset. "off" disables the post-processing renderer entirely.
+    renderPreset: RenderPreset;
     isCapturing: boolean;
     // per-tab filters
     genshinFilter: FilterEntry[];
@@ -148,6 +153,8 @@ export function createInitialState(isMobile: boolean): SceneState {
         videoBgActive: false,
         isCharPanelOpen: false,
         isTrackPanelOpen: false,
+        isRenderPanelOpen: false,
+        renderPreset: "default",
         isCapturing: false,
         genshinFilter: [{ key: "id", value: "1000" }],
         hsrFilter: [{ key: "id", value: "2000" }],

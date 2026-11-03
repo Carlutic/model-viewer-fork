@@ -178,6 +178,22 @@ export function Toolbar({ api, state }: Props): JSX.Element {
                 />
             )}
 
+            {/* Render settings (presets) — toggle button for RenderPanel. */}
+            <img
+                data-render-toggle
+                src={resUrl(state.darkMode ? "res/assets/render_light.png" : "res/assets/render.png")}
+                class={btnStyle}
+                style={{
+                    position: "absolute",
+                    left: `${gap}px`,
+                    top: topAt(5),
+                    background: (state.isRenderPanelOpen || state.renderPreset !== "off") ? "rgba(119,119,119,0.5)" : "transparent",
+                    borderRadius: "10px"
+                }}
+                onClick={(): void => api.toggleRenderPanel()}
+                alt="render settings"
+            />
+
             {/* Support button (top right) */}
             <img
                 src={resUrl("res/assets/support.png")}

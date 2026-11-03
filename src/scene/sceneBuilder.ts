@@ -76,6 +76,7 @@ import { getFiltersForTab } from "../ui/components/filters/filterDefs";
 import { generateReferenceSheet } from "./referenceSheet";
 import type { SceneApi } from "./sceneApi";
 import { SceneStateStore, createInitialState } from "./sceneState";
+import type { RenderPreset } from "./sceneState";
 import type { TabMode, CharacterData, SceneState } from "./sceneState";
 
 // MMD material morphs (author-authored part/outfit toggles such as "Skirtoff" or
@@ -406,6 +407,13 @@ export class SceneBuilder implements ISceneBuilder {
         directionalLight.orthoLeft = -10 * worldScale;
         directionalLight.orthoRight = 10 * worldScale;
         directionalLight.shadowOrthoScale = 0;
+
+        // Extra rim light used by the stylised render presets (Endfield etc.).
+        // Zero intensity by default so the untouched render is unchanged.
+        const rimLight = new DirectionalLight("RimLight", new Vector3(-0.6, -0.25, 1), scene);
+        rimLight.intensity = 0;
+        rimLight.diffuse = new Color3(0.55, 0.72, 1.0);
+        rimLight.specular = new Color3(0.35, 0.5, 0.85);
 
         const shadowGenerator = new ShadowGenerator(1024, directionalLight, true);
         shadowGenerator.usePercentageCloserFiltering = true;
@@ -1125,6 +1133,100 @@ export class SceneBuilder implements ISceneBuilder {
         tabMode = firstTabMode;
 
         const store = new SceneStateStore(createInitialState(isMobile));
+
+        // ---------------------------------------------------------------
+        // Render presets. These only touch lights, post-processing and the
+        // stage backdrop, so they can be switched at runtime without
+        // rebuilding/freezing any materials.
+        //   default   - the viewer's original look
+        //   endfield  - Arknights: Endfield-inspired cel-ish cinematic grade:
+        //               cool blue shadows + warm key, strong dual rim light,
+        //               ACES tone mapping, crisp contrast, subtle bloom/CA/grain
+        //   cinematic - warmer, softer film look
+        //   off       - no post-processing / no extra lights (flat render)
+        // ---------------------------------------------------------------
+        const baseHemiIntensity = hemisphericLight.intensity;
+        const baseHemiDiffuse = hemisphericLight.diffuse.clone();
+        const baseHemiGround = hemisphericLight.groundColor.clone();
+        const baseDirIntensity = directionalLight.intensity;
+        const baseDirDiffuse = directionalLight.diffuse.clone();
+        const baseLayerColor = layer.color.clone();
+        const baseClearColor = scene.clearColor.clone();
+
+        const applyRenderPreset = (preset: RenderPreset): void => {
+            const ip = defaultPipeline.imageProcessing;
+            const on = preset !== "off";
+            defaultPipeline.imageProcessingEnabled = on;
+            defaultPipeline.chromaticAberrationEnabled = false;
+            defaultPipeline.bloomEnabled = false;
+            defaultPipeline.grainEnabled = false;
+            ip.toneMappingEnabled = false;
+            ip.contrast = 1;
+            ip.exposure = 0;
+            ip.vignetteEnabled = false;
+            ip.vignetteWeight = 0.5;
+
+            rimLight.intensity = 0;
+            hemisphericLight.intensity = baseHemiIntensity;
+            hemisphericLight.diffuse.copyFrom(baseHemiDiffuse);
+            hemisphericLight.groundColor.copyFrom(baseHemiGround);
+            directionalLight.intensity = baseDirIntensity;
+            directionalLight.diffuse.copyFrom(baseDirDiffuse);
+            layer.color.copyFrom(baseLayerColor);
+            scene.clearColor.copyFrom(baseClearColor);
+
+            if (preset === "endfield") {
+                // Cool grey-blue shadows + warm key light, dual rim light.
+                hemisphericLight.intensity = 0.5;
+                hemisphericLight.diffuse = new Color3(0.62, 0.74, 0.95);
+                hemisphericLight.groundColor = new Color3(0.34, 0.44, 0.62);
+                directionalLight.intensity = 1.35;
+                directionalLight.diffuse = new Color3(1.0, 0.95, 0.86);
+                rimLight.intensity = 0.9;
+                layer.color = new Color4(0.62, 0.68, 0.78, 1);
+                scene.clearColor = new Color4(0.03, 0.04, 0.06, 1);
+                ip.toneMappingEnabled = true;
+                ip.toneMappingType = ImageProcessingConfiguration.TONEMAPPING_ACES;
+                ip.contrast = 1.22;
+                ip.exposure = -0.06;
+                ip.vignetteEnabled = true;
+                ip.vignetteWeight = 1.1;
+                defaultPipeline.bloomEnabled = true;
+                defaultPipeline.bloomThreshold = 0.86;
+                defaultPipeline.bloomWeight = 0.28;
+                defaultPipeline.bloomKernel = 48;
+                defaultPipeline.bloomScale = 0.5;
+                defaultPipeline.chromaticAberrationEnabled = true;
+                defaultPipeline.chromaticAberration.aberrationAmount = 5;
+                defaultPipeline.grainEnabled = true;
+                defaultPipeline.grain.intensity = 5;
+                defaultPipeline.grain.animated = true;
+            } else if (preset === "cinematic") {
+                hemisphericLight.intensity = 0.45;
+                hemisphericLight.diffuse = new Color3(0.9, 0.85, 0.8);
+                hemisphericLight.groundColor = new Color3(0.3, 0.35, 0.42);
+                directionalLight.intensity = 1.2;
+                directionalLight.diffuse = new Color3(1.0, 0.92, 0.8);
+                rimLight.intensity = 0.55;
+                layer.color = new Color4(0.8, 0.8, 0.82, 1);
+                ip.toneMappingEnabled = true;
+                ip.toneMappingType = ImageProcessingConfiguration.TONEMAPPING_ACES;
+                ip.contrast = 1.14;
+                ip.exposure = 0.02;
+                ip.vignetteEnabled = true;
+                ip.vignetteWeight = 1.4;
+                defaultPipeline.bloomEnabled = true;
+                defaultPipeline.bloomThreshold = 0.92;
+                defaultPipeline.bloomWeight = 0.2;
+            } else if (preset === "default") {
+                ip.vignetteEnabled = true;
+                ip.vignetteWeight = 0.5;
+                defaultPipeline.chromaticAberrationEnabled = true;
+                defaultPipeline.chromaticAberration.aberrationAmount = 1;
+            }
+            store.set({ renderPreset: preset });
+        };
+        applyRenderPreset(store.get().renderPreset);
         // Give createMmdRuntime access to the store so it can push isPlaying updates.
         storeRef = store;
         store.set({
@@ -2298,6 +2400,18 @@ export class SceneBuilder implements ISceneBuilder {
             },
             toggleTrackPanel: (): void => {
                 store.set({ isTrackPanelOpen: !store.get().isTrackPanelOpen });
+            },
+            openRenderPanel: (): void => {
+                store.set({ isRenderPanelOpen: true });
+            },
+            closeRenderPanel: (): void => {
+                store.set({ isRenderPanelOpen: false });
+            },
+            toggleRenderPanel: (): void => {
+                store.set({ isRenderPanelOpen: !store.get().isRenderPanelOpen });
+            },
+            setRenderPreset: (preset: RenderPreset): void => {
+                applyRenderPreset(preset);
             },
             openSupport: (): void => {
                 window.open("https://ko-fi.com/phoshco", "_blank");

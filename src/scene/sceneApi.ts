@@ -1,4 +1,4 @@
-import type { SceneStateStore } from "./sceneState";
+import type { RenderPreset, SceneStateStore } from "./sceneState";
 
 export interface SceneApi {
     state: SceneStateStore;
@@ -27,6 +27,11 @@ export interface SceneApi {
     openTrackPanel(): void;
     closeTrackPanel(): void;
     toggleTrackPanel(): void;
+    // Render panel: open/close and choose the active render preset.
+    openRenderPanel(): void;
+    closeRenderPanel(): void;
+    toggleRenderPanel(): void;
+    setRenderPreset(preset: RenderPreset): void;
     openSupport(): void;
     generateReferenceSheet(): Promise<void>;
     setSearchQuery(q: string): void;
