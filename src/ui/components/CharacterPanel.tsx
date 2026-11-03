@@ -19,7 +19,9 @@ const TAB_TEXT: { key: NamedTab; label: string; short: string }[] = [
     { key: "Genshin", label: "Genshin Impact", short: "Genshin" },
     { key: "HSR", label: "Honkai: Star Rail", short: "HSR" },
     { key: "ZZZ", label: "Zenless Zone Zero", short: "ZZZ" },
+    { key: "WuWa", label: "Wuthering Waves", short: "WuWa" },
     { key: "HNA", label: "Honkai: Nexus Anima", short: "HNA" },
+    { key: "NTE", label: "Neverness To Everness", short: "NTE" },
     { key: "Snowbreak", label: "Snowbreak", short: "Snowbreak" },
     { key: "GirlsFrontline", label: "Girls' Frontline", short: "GF" },
     { key: "Arknights", label: "Arknights", short: "AK" },
@@ -243,15 +245,18 @@ export function CharacterPanel({ api, state }: Props): JSX.Element | null {
                         onPointerDown={(e): void => {
                             const el = tabStripRef.current;
                             if (!el || e.pointerType === "touch") return;
+                            // Do not capture here: capturing would swallow the click on tab buttons.
                             tabDrag.current = { active: true, startX: e.clientX, startLeft: el.scrollLeft, moved: false };
-                            el.setPointerCapture(e.pointerId);
                         }}
                         onPointerMove={(e): void => {
                             const el = tabStripRef.current;
                             if (!el || !tabDrag.current.active) return;
                             const dx = e.clientX - tabDrag.current.startX;
-                            if (Math.abs(dx) > 4) tabDrag.current.moved = true;
-                            el.scrollLeft = tabDrag.current.startLeft - dx;
+                            if (!tabDrag.current.moved && Math.abs(dx) > 4) {
+                                tabDrag.current.moved = true;
+                                try { el.setPointerCapture(e.pointerId); } catch { /* ignore */ }
+                            }
+                            if (tabDrag.current.moved) el.scrollLeft = tabDrag.current.startLeft - dx;
                         }}
                         onPointerUp={(e): void => {
                             const el = tabStripRef.current;
@@ -317,24 +322,6 @@ export function CharacterPanel({ api, state }: Props): JSX.Element | null {
 
                 {/* Filter bar row 2: WuWa/NTE + search + weapon filters */}
                 <div class="flex flex-wrap sm:flex-nowrap items-center gap-2 px-2 sm:px-3 py-2 sm:py-0 sm:h-[50px] bg-[rgb(64,68,70)] sm:rounded-b-xl">
-                    <button
-                        class={`w-9 h-9 sm:w-10 sm:h-10 rounded shrink-0 ${state.tabMode === "WuWa" ? "bg-[rgb(44,48,50)]" : ""}`}
-                        onClick={(): void => api.setTab("WuWa")}
-                        onMouseEnter={(): void => setHoverName("Wuthering Waves")}
-                        onMouseLeave={(): void => setHoverName("")}
-                        title="Wuthering Waves"
-                    >
-                        <img src={resUrl("res/assets/tacet.png")} class="w-full h-full object-contain" />
-                    </button>
-                    <button
-                        class={`w-9 h-9 sm:w-10 sm:h-10 rounded shrink-0 ${state.tabMode === "NTE" ? "bg-[rgb(44,48,50)]" : ""}`}
-                        onClick={(): void => api.setTab("NTE")}
-                        onMouseEnter={(): void => setHoverName("Neverness To Everness")}
-                        onMouseLeave={(): void => setHoverName("")}
-                        title="Neverness To Everness"
-                    >
-                        <img src={resUrl("res/assets/nte.png")} class="w-full h-full object-contain" />
-                    </button>
                     {/* Search box */}
                     <div class="flex items-center bg-[rgb(44,48,50)] rounded-2xl px-2 h-9 sm:h-10 shrink-0">
                         <img src={resUrl("res/assets/search.png")} class="w-5 h-5 sm:w-6 sm:h-6" />
