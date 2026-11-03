@@ -1155,21 +1155,22 @@ export class SceneBuilder implements ISceneBuilder {
 
         const applyRenderPreset = (preset: RenderPreset): void => {
             const on = preset !== "off";
-            // Enabling/disabling creates or drops the image-processing instance, so do
-            // it before grabbing the instance (it is null while disabled).
+            // Enabling/disabling creates or drops the image-processing instance.
             defaultPipeline.imageProcessingEnabled = on;
-            // `defaultPipeline.imageProcessing` is null while the pipeline is disabled,
-            // so grab it only after (re-)enabling and guard every use.
-            const ip = on ? defaultPipeline.imageProcessing : null;
-            defaultPipeline.chromaticAberrationEnabled = false;
-            defaultPipeline.bloomEnabled = false;
-            defaultPipeline.grainEnabled = false;
-            if (ip) {
-                ip.toneMappingEnabled = false;
-                ip.contrast = 1;
-                ip.exposure = 0;
-                ip.vignetteEnabled = false;
-                ip.vignetteWeight = 0.5;
+            // The post-process instance may not expose a configuration object yet,
+            // so use the configuration directly and guard every write.
+            const ipc = on ? defaultPipeline.imageProcessing?.imageProcessingConfiguration ?? null : null;
+            const safe = (fn: () => void): void => { try { fn(); } catch { /* ignore */ } };
+
+            safe(() => { defaultPipeline.chromaticAberrationEnabled = false; });
+            safe(() => { defaultPipeline.bloomEnabled = false; });
+            safe(() => { defaultPipeline.grainEnabled = false; });
+            if (ipc) {
+                safe(() => { ipc.toneMappingEnabled = false; });
+                safe(() => { ipc.contrast = 1; });
+                safe(() => { ipc.exposure = 0; });
+                safe(() => { ipc.vignetteEnabled = false; });
+                safe(() => { ipc.vignetteWeight = 0.5; });
             }
 
             rimLight.intensity = 0;
@@ -1182,17 +1183,15 @@ export class SceneBuilder implements ISceneBuilder {
             scene.clearColor.copyFrom(baseClearColor);
 
             if (preset === "default") {
-                defaultPipeline.imageProcessingEnabled = true;
-                if (ip) {
-                    ip.vignetteEnabled = true;
-                    ip.vignetteWeight = 0.5;
+                if (ipc) {
+                    safe(() => { ipc.vignetteEnabled = true; });
+                    safe(() => { ipc.vignetteWeight = 0.5; });
                 }
-                defaultPipeline.chromaticAberrationEnabled = true;
-                defaultPipeline.chromaticAberration.aberrationAmount = 1;
+                safe(() => { defaultPipeline.chromaticAberrationEnabled = true; });
+                safe(() => { defaultPipeline.chromaticAberration.aberrationAmount = 1; });
             } else if (preset === "off") {
                 defaultPipeline.imageProcessingEnabled = false;
             } else if (preset === "endfield") {
-                defaultPipeline.imageProcessingEnabled = true;
                 hemisphericLight.intensity = 0.58;
                 hemisphericLight.diffuse = new Color3(0.62, 0.74, 0.95);
                 hemisphericLight.groundColor = new Color3(0.34, 0.44, 0.62);
@@ -1201,24 +1200,23 @@ export class SceneBuilder implements ISceneBuilder {
                 rimLight.intensity = 0.85;
                 layer.color = new Color4(0.72, 0.78, 0.88, 1);
                 scene.clearColor = new Color4(0.03, 0.04, 0.06, 1);
-                if (ip) {
-                    ip.contrast = 1.2;
-                    ip.exposure = 0.1;
-                    ip.vignetteEnabled = true;
-                    ip.vignetteWeight = 0.8;
-                    defaultPipeline.bloomEnabled = true;
-                    defaultPipeline.bloomThreshold = 0.9;
-                    defaultPipeline.bloomWeight = 0.22;
-                    defaultPipeline.bloomKernel = 48;
-                    defaultPipeline.bloomScale = 0.5;
-                    defaultPipeline.chromaticAberrationEnabled = true;
-                    defaultPipeline.chromaticAberration.aberrationAmount = 5;
-                    defaultPipeline.grainEnabled = true;
-                    defaultPipeline.grain.intensity = 5;
-                    defaultPipeline.grain.animated = true;
+                if (ipc) {
+                    safe(() => { ipc.contrast = 1.2; });
+                    safe(() => { ipc.exposure = 0.1; });
+                    safe(() => { ipc.vignetteEnabled = true; });
+                    safe(() => { ipc.vignetteWeight = 0.8; });
                 }
+                safe(() => { defaultPipeline.bloomEnabled = true; });
+                safe(() => { defaultPipeline.bloomThreshold = 0.9; });
+                safe(() => { defaultPipeline.bloomWeight = 0.22; });
+                safe(() => { defaultPipeline.bloomKernel = 48; });
+                safe(() => { defaultPipeline.bloomScale = 0.5; });
+                safe(() => { defaultPipeline.chromaticAberrationEnabled = true; });
+                safe(() => { defaultPipeline.chromaticAberration.aberrationAmount = 5; });
+                safe(() => { defaultPipeline.grainEnabled = true; });
+                safe(() => { defaultPipeline.grain.intensity = 5; });
+                safe(() => { defaultPipeline.grain.animated = true; });
             } else if (preset === "cinematic") {
-                defaultPipeline.imageProcessingEnabled = true;
                 hemisphericLight.intensity = 0.45;
                 hemisphericLight.diffuse = new Color3(0.9, 0.85, 0.8);
                 hemisphericLight.groundColor = new Color3(0.3, 0.35, 0.42);
@@ -1226,15 +1224,15 @@ export class SceneBuilder implements ISceneBuilder {
                 directionalLight.diffuse = new Color3(1.0, 0.92, 0.8);
                 rimLight.intensity = 0.55;
                 layer.color = new Color4(0.8, 0.8, 0.82, 1);
-                if (ip) {
-                    ip.contrast = 1.1;
-                    ip.exposure = 0.06;
-                    ip.vignetteEnabled = true;
-                    ip.vignetteWeight = 1.4;
-                    defaultPipeline.bloomEnabled = true;
-                    defaultPipeline.bloomThreshold = 0.92;
-                    defaultPipeline.bloomWeight = 0.2;
+                if (ipc) {
+                    safe(() => { ipc.contrast = 1.1; });
+                    safe(() => { ipc.exposure = 0.06; });
+                    safe(() => { ipc.vignetteEnabled = true; });
+                    safe(() => { ipc.vignetteWeight = 1.4; });
                 }
+                safe(() => { defaultPipeline.bloomEnabled = true; });
+                safe(() => { defaultPipeline.bloomThreshold = 0.92; });
+                safe(() => { defaultPipeline.bloomWeight = 0.2; });
             }
             store.set({ renderPreset: preset });
         };
