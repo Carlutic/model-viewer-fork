@@ -461,9 +461,10 @@ export class SceneBuilder implements ISceneBuilder {
         let physicsModeOn = true;
 
         let motionName = motionConfig[Math.floor(Math.random() * motionConfig.length)].name;
-        let audioPlayerFile = motionConfig.find((item) => item.name === motionName)!.audioPlayerFile;
-        let camMotionFile = motionConfig.find((item) => item.name === motionName)!.camMotionFile;
-        let modelMotionFile = motionConfig.find((item) => item.name === motionName)!.modelMotionFile;
+        // Tracks may omit audio / camera (e.g. motion-only demo entries).
+        let audioPlayerFile: string = motionConfig.find((item) => item.name === motionName)?.audioPlayerFile ?? "";
+        let camMotionFile: string | undefined = motionConfig.find((item) => item.name === motionName)?.camMotionFile;
+        let modelMotionFile: string = motionConfig.find((item) => item.name === motionName)?.modelMotionFile ?? "";
         // Optional per-track full-screen video background (e.g. an MMD PV). Only some
         // tracks declare it, so it is read defensively and may be undefined.
         let videoFile: string | undefined = (motionConfig.find((item) => item.name === motionName) as { videoFile?: string }).videoFile;
@@ -478,7 +479,7 @@ export class SceneBuilder implements ISceneBuilder {
         audioPlayer.preservesPitch = true;
         // Start at 50% volume by default (the slider reads this on creation).
         audioPlayer.volume = 0.5;
-        audioPlayer.source = audioPlayerFile;
+        if (audioPlayerFile) audioPlayer.source = audioPlayerFile;
         let wasmInstance: any | undefined;
 
         const createMmdRuntime = (physicsOn: boolean): MmdRuntime | MmdWasmRuntime => {
@@ -564,7 +565,7 @@ export class SceneBuilder implements ISceneBuilder {
             }
         };
 
-        promises.push(safeLoadMotion("motion", camMotionFile, (event: any) => updateLoadingText(0, `Loading camera... ${event.loaded}/${event.total} (${Math.floor(event.loaded * 100 / event.total)}%)`)));
+        if (camMotionFile) promises.push(safeLoadMotion("motion", camMotionFile, (event: any) => updateLoadingText(0, `Loading camera... ${event.loaded}/${event.total} (${Math.floor(event.loaded * 100 / event.total)}%)`)));
         promises.push(safeLoadMotion("motion", expressionMotionFile ? [modelMotionFile, expressionMotionFile] : modelMotionFile, (event: any) => updateLoadingText(1, `Loading motion... ${event.loaded}/${event.total} (${Math.floor(event.loaded * 100 / event.total)}%)`)));
 
         let charScreenMode = true;
@@ -1265,7 +1266,7 @@ export class SceneBuilder implements ISceneBuilder {
             audioPlayer = new StreamAudioPlayer(scene);
             // Preserve pitch across speed changes (see initial setup above).
             audioPlayer.preservesPitch = true;
-            audioPlayer.source = audioPlayerFile;
+            if (audioPlayerFile) audioPlayer.source = audioPlayerFile;
             mmdRuntime.setAudioPlayer(audioPlayer);
             mmdPlayerControl.dispose();
             audioPlayer.volume = oldVolume;
@@ -1278,7 +1279,7 @@ export class SceneBuilder implements ISceneBuilder {
             customLoadingScreen.setAccentColor(charScreenElement);
             promises = [];
 
-            promises.push(safeLoadMotion("motion", camMotionFile, (event: any) => updateLoadingText(0, `Loading camera... ${event.loaded}/${event.total} (${Math.floor(event.loaded * 100 / event.total)}%)`)));
+            if (camMotionFile) promises.push(safeLoadMotion("motion", camMotionFile, (event: any) => updateLoadingText(0, `Loading camera... ${event.loaded}/${event.total} (${Math.floor(event.loaded * 100 / event.total)}%)`)));
             promises.push(safeLoadMotion("motion", expressionMotionFile ? [modelMotionFile, expressionMotionFile] : modelMotionFile, (event: any) => updateLoadingText(1, `Loading motion... ${event.loaded}/${event.total} (${Math.floor(event.loaded * 100 / event.total)}%)`)));
 
             loadResults = await Promise.all(promises);
@@ -2292,9 +2293,9 @@ export class SceneBuilder implements ISceneBuilder {
                 const track = motionConfig.find(t => t.name === trackName);
                 if (!track) return;
                 motionName = track.name;
-                audioPlayerFile = track.audioPlayerFile;
+                audioPlayerFile = track.audioPlayerFile ?? "";
                 camMotionFile = track.camMotionFile;
-                modelMotionFile = track.modelMotionFile;
+                modelMotionFile = track.modelMotionFile ?? "";
                 expressionMotionFile = (track as { expressionMotionFile?: string }).expressionMotionFile;
                 videoFile = (track as { videoFile?: string }).videoFile;
                 store.set({ motionName, isTrackPanelOpen: false });

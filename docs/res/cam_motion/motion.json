@@ -54,5 +54,9 @@
         "camMotionFile": "res/cam_motion/AOA 猫步轻俏/camera.vmd",
         "modelMotionFile": "res/cam_motion/AOA 猫步轻俏/motion.vmd",
         "expressionMotionFile": "res/cam_motion/AOA 猫步轻俏/expression.vmd"
+    },
+    {
+        "name": "HS2 Emote 测试",
+        "modelMotionFile": "res/cam_motion/HS2 动作测试/motion.vmd"
     }
 ]
