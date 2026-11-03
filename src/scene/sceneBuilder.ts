@@ -1,4 +1,4 @@
-import { baseUrl, resUrl, snowbreakBaseUrl, girlsFrontlineBaseUrl, urlBasePath } from "../config";// for use loading screen, we need to import following module.
+import { baseUrl, resUrl, snowbreakBaseUrl, girlsFrontlineBaseUrl, girlsFrontline2BaseUrl, urlBasePath } from "../config";// for use loading screen, we need to import following module.
 import "@babylonjs/core/Loading/loadingScreen";
 // for cast shadow, we need to import following module.
 import "@babylonjs/core/Lights/Shadows/shadowGeneratorSceneComponent";
@@ -148,6 +148,21 @@ export class SceneBuilder implements ISceneBuilder {
             for (const c of girlsFrontlineSkinCharDatas) c.base = girlsFrontlineBase;
         } catch (error) {
             console.warn("Girls' Frontline model library is unavailable; skipping the category:", error);
+        }
+
+        // Second Girls' Frontline library (Carlutic/girl_frontline2). The first
+        // repository is close to the 1 GB GitHub Pages limit, so new batches live
+        // there; both manifests are merged into the same category.
+        const girlsFrontline2Base = girlsFrontline2BaseUrl();
+        try {
+            const charDatas2: BaseCharData[] = await (await fetch(`${girlsFrontline2Base}girl_frontline.json`)).json();
+            const skinDatas2: BaseCharData[] = await (await fetch(`${girlsFrontline2Base}skins.json`)).json();
+            for (const c of charDatas2) c.base = girlsFrontline2Base;
+            for (const c of skinDatas2) c.base = girlsFrontline2Base;
+            girlsFrontlineCharDatas = girlsFrontlineCharDatas.concat(charDatas2);
+            girlsFrontlineSkinCharDatas = girlsFrontlineSkinCharDatas.concat(skinDatas2);
+        } catch (error) {
+            console.warn("Girls' Frontline library #2 is unavailable; skipping it:", error);
         }
 
         const extraDataArray = extraCharDatas as ExtraCharData[];

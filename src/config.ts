@@ -43,3 +43,14 @@ export function snowbreakBaseUrl(): string {
 export function girlsFrontlineBaseUrl(): string {
     return "https://carlutic.github.io/girl_frontline/";
 }
+
+/**
+ * Base URL of the second Girls' Frontline (少女前线) model library.
+ *
+ * The library outgrew the 1 GB GitHub Pages limit of the first repository, so
+ * newer batches live in `Carlutic/girl_frontline2`. Both manifests are merged
+ * into the same "Girls' Frontline" tab by the scene builder.
+ */
+export function girlsFrontline2BaseUrl(): string {
+    return "https://carlutic.github.io/girl_frontline2/";
+}
