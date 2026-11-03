@@ -48,6 +48,7 @@ import { ShadowOnlyMaterial } from "@babylonjs/materials/shadowOnly/shadowOnlyMa
 import type { MmdAnimation } from "babylon-mmd/esm/Loader/Animation/mmdAnimation";
 import { MmdStandardMaterialBuilder } from "babylon-mmd/esm/Loader/mmdStandardMaterialBuilder";
 import { BvmdLoader } from "babylon-mmd/esm/Loader/Optimized/bvmdLoader";
+import { VmdLoader } from "babylon-mmd/esm/Loader/vmdLoader";
 import { RegisterDxBmpTextureLoader } from "babylon-mmd/esm/Loader/registerDxBmpTextureLoader";import { SdefInjector } from "babylon-mmd/esm/Loader/sdefInjector";
 import { StreamAudioPlayer } from "babylon-mmd/esm/Runtime/Audio/streamAudioPlayer";
 import { MmdCamera } from "babylon-mmd/esm/Runtime/mmdCamera";
@@ -371,6 +372,9 @@ export class SceneBuilder implements ISceneBuilder {
         // Optional per-track full-screen video background (e.g. an MMD PV). Only some
         // tracks declare it, so it is read defensively and may be undefined.
         let videoFile: string | undefined = (motionConfig.find((item) => item.name === motionName) as { videoFile?: string }).videoFile;
+        // Optional second VMD holding only morph (expression) tracks; merged into the
+        // model motion by the VMD loader when present.
+        let expressionMotionFile: string | undefined = (motionConfig.find((item) => item.name === motionName) as { expressionMotionFile?: string }).expressionMotionFile;
 
         let audioPlayer = new StreamAudioPlayer(scene);
         // Keep the audio at its original pitch when the speed slider slows
@@ -447,18 +451,26 @@ export class SceneBuilder implements ISceneBuilder {
 
         const bvmdLoader = new BvmdLoader(scene);
         bvmdLoader.loggingEnabled = true;
+        const vmdLoader = new VmdLoader(scene);
+        vmdLoader.loggingEnabled = true;
 
-        const safeLoadBvmd = async (type: string, url: string, onProgress?: any): Promise<any> => {
+        // Tracks may ship either optimized BVMD or plain VMD files; VMD can also be
+        // given as several files (e.g. motion + expression-only VMD) and merged.
+        const safeLoadMotion = async (type: string, url: string | string[], onProgress?: any): Promise<any> => {
             try {
-                return await bvmdLoader.loadAsync(type, url, onProgress);
+                const urls = Array.isArray(url) ? url : [url];
+                if (urls.some((u) => /\.vmd(\?|$)/i.test(u))) {
+                    return await vmdLoader.loadAsync(type, urls, onProgress);
+                }
+                return await bvmdLoader.loadAsync(type, urls[0], onProgress);
             } catch (e: any) {
-                console.warn("BVMD load failed, continuing without motion:", e?.message || e);
+                console.warn("Motion load failed, continuing without motion:", e?.message || e);
                 return undefined;
             }
         };
 
-        promises.push(safeLoadBvmd("motion", camMotionFile, (event: any) => updateLoadingText(0, `Loading camera... ${event.loaded}/${event.total} (${Math.floor(event.loaded * 100 / event.total)}%)`)));
-        promises.push(safeLoadBvmd("motion", modelMotionFile, (event: any) => updateLoadingText(1, `Loading motion... ${event.loaded}/${event.total} (${Math.floor(event.loaded * 100 / event.total)}%)`)));
+        promises.push(safeLoadMotion("motion", camMotionFile, (event: any) => updateLoadingText(0, `Loading camera... ${event.loaded}/${event.total} (${Math.floor(event.loaded * 100 / event.total)}%)`)));
+        promises.push(safeLoadMotion("motion", expressionMotionFile ? [modelMotionFile, expressionMotionFile] : modelMotionFile, (event: any) => updateLoadingText(1, `Loading motion... ${event.loaded}/${event.total} (${Math.floor(event.loaded * 100 / event.total)}%)`)));
 
         let charScreenMode = true;
         let charScreenElement = "Pyro";
@@ -1138,8 +1150,8 @@ export class SceneBuilder implements ISceneBuilder {
             customLoadingScreen.setAccentColor(charScreenElement);
             promises = [];
 
-            promises.push(safeLoadBvmd("motion", camMotionFile, (event: any) => updateLoadingText(0, `Loading camera... ${event.loaded}/${event.total} (${Math.floor(event.loaded * 100 / event.total)}%)`)));
-            promises.push(safeLoadBvmd("motion", modelMotionFile, (event: any) => updateLoadingText(1, `Loading motion... ${event.loaded}/${event.total} (${Math.floor(event.loaded * 100 / event.total)}%)`)));
+            promises.push(safeLoadMotion("motion", camMotionFile, (event: any) => updateLoadingText(0, `Loading camera... ${event.loaded}/${event.total} (${Math.floor(event.loaded * 100 / event.total)}%)`)));
+            promises.push(safeLoadMotion("motion", expressionMotionFile ? [modelMotionFile, expressionMotionFile] : modelMotionFile, (event: any) => updateLoadingText(1, `Loading motion... ${event.loaded}/${event.total} (${Math.floor(event.loaded * 100 / event.total)}%)`)));
 
             loadResults = await Promise.all(promises);
             theCharAnimation = loadResults[1] as MmdAnimation | undefined;
@@ -2116,6 +2128,7 @@ export class SceneBuilder implements ISceneBuilder {
                 audioPlayerFile = track.audioPlayerFile;
                 camMotionFile = track.camMotionFile;
                 modelMotionFile = track.modelMotionFile;
+                expressionMotionFile = (track as { expressionMotionFile?: string }).expressionMotionFile;
                 videoFile = (track as { videoFile?: string }).videoFile;
                 store.set({ motionName, isTrackPanelOpen: false });
                 await changeMotion();

@@ -1,52 +1,58 @@
 [
     {
-      "name": "Specialist",
-      "audioPlayerFile": "res/cam_motion/Specialist (Never End ver.)/music001.mp3",
-      "camMotionFile": "res/cam_motion/Specialist (Never End ver.)/CameraMAIN2.bvmd",
-      "modelMotionFile": "res/cam_motion/Specialist (Never End ver.)/mmd_Specialist_motion.bvmd"
+        "name": "Specialist",
+        "audioPlayerFile": "res/cam_motion/Specialist (Never End ver.)/music001.mp3",
+        "camMotionFile": "res/cam_motion/Specialist (Never End ver.)/CameraMAIN2.bvmd",
+        "modelMotionFile": "res/cam_motion/Specialist (Never End ver.)/mmd_Specialist_motion.bvmd"
     },
     {
-      "name": "Classic",
-      "audioPlayerFile": "res/cam_motion/Classic/MMDClassic.mp3",
-      "camMotionFile": "res/cam_motion/Classic/MMDClassicCamera.bvmd",
-      "modelMotionFile": "res/cam_motion/Classic/MMDClassicMotion.bvmd"
+        "name": "Classic",
+        "audioPlayerFile": "res/cam_motion/Classic/MMDClassic.mp3",
+        "camMotionFile": "res/cam_motion/Classic/MMDClassicCamera.bvmd",
+        "modelMotionFile": "res/cam_motion/Classic/MMDClassicMotion.bvmd"
     },
     {
-      "name": "Renai Circulation",
-      "audioPlayerFile": "res/cam_motion/恋サーFullモーションセット/恋愛サーキュレーション.mp3",
-      "camMotionFile": "res/cam_motion/恋サーFullモーションセット/Camera for 恋爱循环.bvmd",
-      "modelMotionFile": "res/cam_motion/恋サーFullモーションセット/恋爱循环+.bvmd"
+        "name": "Renai Circulation",
+        "audioPlayerFile": "res/cam_motion/恋サーFullモーションセット/恋愛サーキュレーション.mp3",
+        "camMotionFile": "res/cam_motion/恋サーFullモーションセット/Camera for 恋爱循环.bvmd",
+        "modelMotionFile": "res/cam_motion/恋サーFullモーションセット/恋爱循环+.bvmd"
     },
     {
-      "name": "热爱105C的你",
-      "audioPlayerFile": "res/cam_motion/热爱105C的你/热爱105C的你.mp3",
-      "camMotionFile": "res/cam_motion/热爱105C的你/camera.bvmd",
-      "modelMotionFile": "res/cam_motion/热爱105C的你/热爱105℃的你.bvmd"
+        "name": "热爱105C的你",
+        "audioPlayerFile": "res/cam_motion/热爱105C的你/热爱105C的你.mp3",
+        "camMotionFile": "res/cam_motion/热爱105C的你/camera.bvmd",
+        "modelMotionFile": "res/cam_motion/热爱105C的你/热爱105℃的你.bvmd"
     },
     {
-      "name": "MoeChakkaFire",
-      "audioPlayerFile": "res/cam_motion/モエチャッカファイア/MoeChakkaFire.mp3",
-      "camMotionFile": "res/cam_motion/モエチャッカファイア/かめら(185cm).bvmd",
-      "modelMotionFile": "res/cam_motion/モエチャッカファイア/モエチャッカファイア.bvmd"
+        "name": "MoeChakkaFire",
+        "audioPlayerFile": "res/cam_motion/モエチャッカファイア/MoeChakkaFire.mp3",
+        "camMotionFile": "res/cam_motion/モエチャッカファイア/かめら(185cm).bvmd",
+        "modelMotionFile": "res/cam_motion/モエチャッカファイア/モエチャッカファイア.bvmd"
     },
     {
-      "name": "Show",
-      "audioPlayerFile": "res/cam_motion/Show/Show.mp3",
-      "camMotionFile": "res/cam_motion/Show/唱_camera.bvmd",
-      "modelMotionFile": "res/cam_motion/Show/唱.bvmd"
+        "name": "Show",
+        "audioPlayerFile": "res/cam_motion/Show/Show.mp3",
+        "camMotionFile": "res/cam_motion/Show/唱_camera.bvmd",
+        "modelMotionFile": "res/cam_motion/Show/唱.bvmd"
     },
     {
-      "name": "I Want You Back",
-      "audioPlayerFile": "res/cam_motion/IWYB/Bgm.wav",
-      "camMotionFile": "res/cam_motion/IWYB/cam by ok mmdout.bvmd",
-      "modelMotionFile": "res/cam_motion/IWYB/MMD_Motion_IWYB.bvmd"
+        "name": "I Want You Back",
+        "audioPlayerFile": "res/cam_motion/IWYB/Bgm.wav",
+        "camMotionFile": "res/cam_motion/IWYB/cam by ok mmdout.bvmd",
+        "modelMotionFile": "res/cam_motion/IWYB/MMD_Motion_IWYB.bvmd"
     },
     {
-      "name": "お気に召すまま",
-      "audioPlayerFile": "res/cam_motion/お気に召すまま/お気に召すまま.wav",
-      "camMotionFile": "res/cam_motion/お気に召すまま/TDA Cam.bvmd",
-      "modelMotionFile": "res/cam_motion/お気に召すまま/TDA Motion.bvmd",
-      "videoFile": "res/cam_motion/お気に召すまま/TDA PV.mp4"
+        "name": "お気に召すまま",
+        "audioPlayerFile": "res/cam_motion/お気に召すまま/お気に召すまま.wav",
+        "camMotionFile": "res/cam_motion/お気に召すまま/TDA Cam.bvmd",
+        "modelMotionFile": "res/cam_motion/お気に召すまま/TDA Motion.bvmd",
+        "videoFile": "res/cam_motion/お気に召すまま/TDA PV.mp4"
+    },
+    {
+        "name": "AOA 猫步轻俏",
+        "audioPlayerFile": "res/cam_motion/AOA 猫步轻俏/audio.wav",
+        "camMotionFile": "res/cam_motion/AOA 猫步轻俏/camera.vmd",
+        "modelMotionFile": "res/cam_motion/AOA 猫步轻俏/motion.vmd",
+        "expressionMotionFile": "res/cam_motion/AOA 猫步轻俏/expression.vmd"
     }
-  ]
-  
+]
