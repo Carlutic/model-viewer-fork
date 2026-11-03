@@ -10,7 +10,7 @@ interface Props {
 
 const PRESETS: { key: RenderPreset; label: string; desc: string }[] = [
     { key: "default", label: "默认渲染", desc: "原有光照 + 轻后期（与之前一致）" },
-    { key: "endfield", label: "终末地风格", desc: "冷蓝阴影 + 暖色主光 + 双色轮廓光，ACES 调色 / 泛光 / 胶片颗粒" },
+    { key: "endfield", label: "终末地风格", desc: "冷蓝阴影 + 暖色主光 + 双色轮廓光，高对比 / 泛光 / 色散 / 胶片颗粒" },
     { key: "cinematic", label: "电影感", desc: "暖调、暗角、轻泛光，柔和对比" },
     { key: "off", label: "关闭渲染", desc: "关闭后期和附加灯光，平面渲染" }
 ];
