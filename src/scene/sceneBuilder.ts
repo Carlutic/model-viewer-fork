@@ -1185,10 +1185,9 @@ export class SceneBuilder implements ISceneBuilder {
                 rimLight.intensity = 0.85;
                 layer.color = new Color4(0.72, 0.78, 0.88, 1);
                 scene.clearColor = new Color4(0.03, 0.04, 0.06, 1);
-                ip.toneMappingEnabled = true;
-                ip.toneMappingType = ImageProcessingConfiguration.TONEMAPPING_ACES;
-                ip.contrast = 1.12;
-                ip.exposure = 0.32;
+                ip.toneMappingEnabled = false;
+                ip.contrast = 1.2;
+                ip.exposure = 0.1;
                 ip.vignetteEnabled = true;
                 ip.vignetteWeight = 0.8;
                 defaultPipeline.bloomEnabled = true;
@@ -1209,10 +1208,9 @@ export class SceneBuilder implements ISceneBuilder {
                 directionalLight.diffuse = new Color3(1.0, 0.92, 0.8);
                 rimLight.intensity = 0.55;
                 layer.color = new Color4(0.8, 0.8, 0.82, 1);
-                ip.toneMappingEnabled = true;
-                ip.toneMappingType = ImageProcessingConfiguration.TONEMAPPING_ACES;
-                ip.contrast = 1.14;
-                ip.exposure = 0.02;
+                ip.toneMappingEnabled = false;
+                ip.contrast = 1.1;
+                ip.exposure = 0.06;
                 ip.vignetteEnabled = true;
                 ip.vignetteWeight = 1.4;
                 defaultPipeline.bloomEnabled = true;
