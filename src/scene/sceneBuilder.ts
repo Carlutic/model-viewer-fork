@@ -1183,12 +1183,8 @@ export class SceneBuilder implements ISceneBuilder {
             scene.clearColor.copyFrom(baseClearColor);
 
             if (preset === "default") {
-                if (ipc) {
-                    safe(() => { ipc.vignetteEnabled = true; });
-                    safe(() => { ipc.vignetteWeight = 0.5; });
-                }
-                safe(() => { defaultPipeline.chromaticAberrationEnabled = true; });
-                safe(() => { defaultPipeline.chromaticAberration.aberrationAmount = 1; });
+                // Plain original pipeline: no extra grading effects. This keeps the
+                // baseline render exactly as it was before render presets existed.
             } else if (preset === "off") {
                 defaultPipeline.imageProcessingEnabled = false;
             } else if (preset === "endfield") {
