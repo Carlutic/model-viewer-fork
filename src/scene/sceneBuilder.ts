@@ -71,7 +71,7 @@ import { FirebaseInstance } from "../fb";
 import { mobileMmdPlayerControl } from "../mobileMmdPlayerControl";
 import type { BaseCharData, GenshinCharData, HSRCharData, ZZZCharData, WuwaCharData, HNACharData, NTECharData, SnowbreakCharData, GirlsFrontlineCharData, ArknightsCharData, BlueArchiveCharData, IdolmasterCharData, ExtraCharData } from "../sceneBuilder.types";
 import { normalize, getFirstDigit, findCharByName, findCharById, findAllCharsByName, createCharacterSlug } from "../sceneBuilder.utils";
-import { afterBuildSingleMaterialDefault, afterBuildSingleMaterialSt } from "../sceneBuilder.materials";
+import { afterBuildSingleMaterialDefault, afterBuildSingleMaterialSt, setMaterialRenderPreset } from "../sceneBuilder.materials";
 import { getFiltersForTab } from "../ui/components/filters/filterDefs";
 import { generateReferenceSheet } from "./referenceSheet";
 import type { SceneApi } from "./sceneApi";
@@ -326,6 +326,15 @@ export class SceneBuilder implements ISceneBuilder {
         const isSpecialModelChar = (c: BaseCharData): boolean => c.exception === true;
 
         const isMobile: boolean = /Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(navigator.userAgent);
+
+        // Restore the render preset before any model material is built (materials
+        // are frozen after load, so presets are applied at build time).
+        let initialRenderPreset: RenderPreset = "default";
+        try {
+            const storedPreset = localStorage.getItem("model-viewer.renderPreset");
+            if (storedPreset === "default" || storedPreset === "endfield" || storedPreset === "off") initialRenderPreset = storedPreset;
+        } catch { /* ignore */ }
+        setMaterialRenderPreset(initialRenderPreset);
 
         RegisterDxBmpTextureLoader();
         const materialBuilder = new MmdStandardMaterialBuilder();
@@ -1145,93 +1154,18 @@ export class SceneBuilder implements ISceneBuilder {
         //   cinematic - warmer, softer film look
         //   off       - no post-processing / no extra lights (flat render)
         // ---------------------------------------------------------------
-        const baseHemiIntensity = hemisphericLight.intensity;
-        const baseHemiDiffuse = hemisphericLight.diffuse.clone();
-        const baseHemiGround = hemisphericLight.groundColor.clone();
-        const baseDirIntensity = directionalLight.intensity;
-        const baseDirDiffuse = directionalLight.diffuse.clone();
-        const baseLayerColor = layer.color.clone();
-        const baseClearColor = scene.clearColor.clone();
 
         const applyRenderPreset = (preset: RenderPreset): void => {
-            const on = preset !== "off";
-            // Enabling/disabling creates or drops the image-processing instance.
-            defaultPipeline.imageProcessingEnabled = on;
-            // The post-process instance may not expose a configuration object yet,
-            // so use the configuration directly and guard every write.
-            const ipc = on ? defaultPipeline.imageProcessing?.imageProcessingConfiguration ?? null : null;
-            const safe = (fn: () => void): void => { try { fn(); } catch { /* ignore */ } };
-
-            safe(() => { defaultPipeline.chromaticAberrationEnabled = false; });
-            safe(() => { defaultPipeline.bloomEnabled = false; });
-            safe(() => { defaultPipeline.grainEnabled = false; });
-            if (ipc) {
-                safe(() => { ipc.toneMappingEnabled = false; });
-                safe(() => { ipc.contrast = 1; });
-                safe(() => { ipc.exposure = 0; });
-                safe(() => { ipc.vignetteEnabled = false; });
-                safe(() => { ipc.vignetteWeight = 0.5; });
-            }
-
-            rimLight.intensity = 0;
-            hemisphericLight.intensity = baseHemiIntensity;
-            hemisphericLight.diffuse.copyFrom(baseHemiDiffuse);
-            hemisphericLight.groundColor.copyFrom(baseHemiGround);
-            directionalLight.intensity = baseDirIntensity;
-            directionalLight.diffuse.copyFrom(baseDirDiffuse);
-            layer.color.copyFrom(baseLayerColor);
-            scene.clearColor.copyFrom(baseClearColor);
-
-            if (preset === "default") {
-                // Restore the scene exactly as it was built (lights/backdrop only).
-                safe(() => { defaultPipeline.imageProcessingEnabled = true; });
-            } else if (preset === "off") {
-                defaultPipeline.imageProcessingEnabled = false;
-            } else if (preset === "endfield") {
-                hemisphericLight.intensity = 0.58;
-                hemisphericLight.diffuse = new Color3(0.62, 0.74, 0.95);
-                hemisphericLight.groundColor = new Color3(0.34, 0.44, 0.62);
-                directionalLight.intensity = 1.25;
-                directionalLight.diffuse = new Color3(1.0, 0.95, 0.86);
-                rimLight.intensity = 0.85;
-                layer.color = new Color4(0.72, 0.78, 0.88, 1);
-                scene.clearColor = new Color4(0.03, 0.04, 0.06, 1);
-                if (ipc) {
-                    safe(() => { ipc.contrast = 1.2; });
-                    safe(() => { ipc.exposure = 0.1; });
-                    safe(() => { ipc.vignetteEnabled = true; });
-                    safe(() => { ipc.vignetteWeight = 0.8; });
-                }
-                safe(() => { defaultPipeline.bloomEnabled = true; });
-                safe(() => { defaultPipeline.bloomThreshold = 0.9; });
-                safe(() => { defaultPipeline.bloomWeight = 0.22; });
-                safe(() => { defaultPipeline.bloomKernel = 48; });
-                safe(() => { defaultPipeline.bloomScale = 0.5; });
-                safe(() => { defaultPipeline.chromaticAberrationEnabled = true; });
-                safe(() => { defaultPipeline.chromaticAberration.aberrationAmount = 5; });
-                safe(() => { defaultPipeline.grainEnabled = true; });
-                safe(() => { defaultPipeline.grain.intensity = 5; });
-                safe(() => { defaultPipeline.grain.animated = true; });
-            } else if (preset === "cinematic") {
-                hemisphericLight.intensity = 0.45;
-                hemisphericLight.diffuse = new Color3(0.9, 0.85, 0.8);
-                hemisphericLight.groundColor = new Color3(0.3, 0.35, 0.42);
-                directionalLight.intensity = 1.2;
-                directionalLight.diffuse = new Color3(1.0, 0.92, 0.8);
-                rimLight.intensity = 0.55;
-                layer.color = new Color4(0.8, 0.8, 0.82, 1);
-                if (ipc) {
-                    safe(() => { ipc.contrast = 1.1; });
-                    safe(() => { ipc.exposure = 0.06; });
-                    safe(() => { ipc.vignetteEnabled = true; });
-                    safe(() => { ipc.vignetteWeight = 1.4; });
-                }
-                safe(() => { defaultPipeline.bloomEnabled = true; });
-                safe(() => { defaultPipeline.bloomThreshold = 0.92; });
-                safe(() => { defaultPipeline.bloomWeight = 0.2; });
-            }
+            // Character-focused preset: adjust the MMD materials on the next model
+            // build and enable/disable the cool rim light. No screen-wide overlay.
+            setMaterialRenderPreset(preset);
+            rimLight.intensity = preset === "endfield" ? 0.55 : 0;
+            try {
+                localStorage.setItem("model-viewer.renderPreset", preset);
+            } catch { /* ignore */ }
             store.set({ renderPreset: preset });
         };
+        applyRenderPreset(initialRenderPreset);
         // Give createMmdRuntime access to the store so it can push isPlaying updates.
         storeRef = store;
         store.set({

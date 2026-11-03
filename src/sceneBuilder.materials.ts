@@ -1,6 +1,6 @@
 import type { MmdStandardMaterial } from "babylon-mmd/esm/Loader/mmdStandardMaterial";
 import { Material } from "@babylonjs/core";
-import { Color3 } from "@babylonjs/core/Maths/math.color";
+import { Color3, Color4 } from "@babylonjs/core/Maths/math.color";
 
 /**
  * Some MMD authors tint the outline (edge) color of a material — e.g. the Girls'
@@ -42,6 +42,37 @@ function hideEffectMaterial(material: MmdStandardMaterial): void {
     material.disableDepthWrite = true;
 }
 
+// ---------------------------------------------------------------------------
+// Render presets applied to the *character materials* (not to the screen).
+// The viewer freezes materials for performance, so a preset change rebuilds the
+// current model's materials through these hooks.
+// ---------------------------------------------------------------------------
+export type MaterialRenderPreset = "default" | "endfield" | "off";
+let materialRenderPreset: MaterialRenderPreset = "default";
+
+export const setMaterialRenderPreset = (preset: MaterialRenderPreset): void => {
+    materialRenderPreset = preset;
+};
+
+/** Inverse-hull outline thickness: MMD "edge size" scaled up for a cel look. */
+function applyRenderPresetToMaterial(material: MmdStandardMaterial): void {
+    if (materialRenderPreset === "endfield") {
+        // Endfield-ish cel look: thicker dark-blue outline, lifted cool shadows,
+        // slightly warm daylit texture, tighter specular highlight.
+        const width = material.outlineWidth;
+        if (width > 0) material.outlineWidth = width * 1.9;
+        material.outlineColor = new Color3(0.02, 0.03, 0.06);
+        material.textureMultiplicativeColor = new Color4(1.02, 1.0, 0.97, 1);
+        material.textureAdditiveColor = new Color4(0.008, 0.011, 0.016, 0);
+        material.specularColor = new Color3(0.18, 0.19, 0.22);
+        material.specularPower = 48;
+    } else if (materialRenderPreset === "off") {
+        // Flat render: no outline hull, no stylised speculars.
+        material.outlineWidth = 0;
+        material.specularColor = Color3.Black();
+    }
+}
+
 // Keep exact logic from original callbacks — exported so SceneBuilder can assign them.
 export const afterBuildSingleMaterialDefault = (material: MmdStandardMaterial): void => {
     material.forceDepthWrite = true;
@@ -57,6 +88,7 @@ export const afterBuildSingleMaterialDefault = (material: MmdStandardMaterial): 
     }
     neutralizeGreenHairOutline(material);
     hideEffectMaterial(material);
+    applyRenderPresetToMaterial(material);
 };
 
 export const afterBuildSingleMaterialSt = (material: MmdStandardMaterial): void => {
@@ -73,4 +105,5 @@ export const afterBuildSingleMaterialSt = (material: MmdStandardMaterial): void 
     }
     neutralizeGreenHairOutline(material);
     hideEffectMaterial(material);
+    applyRenderPresetToMaterial(material);
 };

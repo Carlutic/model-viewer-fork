@@ -9,10 +9,9 @@ interface Props {
 }
 
 const PRESETS: { key: RenderPreset; label: string; desc: string }[] = [
-    { key: "default", label: "默认渲染", desc: "原有光照 + 轻后期（与之前一致）" },
-    { key: "endfield", label: "终末地风格", desc: "冷蓝阴影 + 暖色主光 + 双色轮廓光，高对比 / 泛光 / 色散 / 胶片颗粒" },
-    { key: "cinematic", label: "电影感", desc: "暖调、暗角、轻泛光，柔和对比" },
-    { key: "off", label: "关闭渲染", desc: "关闭后期和附加灯光，平面渲染" }
+    { key: "default", label: "默认渲染", desc: "模型原始材质与描边" },
+    { key: "endfield", label: "终末地风格", desc: "加粗深色描边 + 冷色轮廓光 + 材质微调（只作用于角色）" },
+    { key: "off", label: "关闭渲染", desc: "去掉描边和风格化高光，平面渲染" }
 ];
 
 export function RenderPanel({ api, state }: Props): JSX.Element | null {
@@ -62,7 +61,7 @@ export function RenderPanel({ api, state }: Props): JSX.Element | null {
                 </span>
             </button>
 
-            <div class="px-3 pt-1 pb-1 text-xs text-white/50">渲染预设</div>
+            <div class="px-3 pt-1 pb-1 text-xs text-white/50">渲染预设（切换会重新加载当前角色）</div>
             {PRESETS.map((p): JSX.Element => (
                 <button
                     key={p.key}
