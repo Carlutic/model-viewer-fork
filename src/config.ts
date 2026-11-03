@@ -64,6 +64,17 @@ export function arknightsBaseUrl(): string {
 }
 
 /**
+ * Base URLs of the Blue Archive (碧蓝档案) model libraries. The full-resolution
+ * models are split across two repositories to stay under the Pages size limit.
+ */
+export function blueArchiveBaseUrls(): string[] {
+    return [
+        "https://carlutic.github.io/bluearchive/",
+        "https://carlutic.github.io/bluearchive2/",
+    ];
+}
+
+/**
  * Additional Girls' Frontline libraries (original-resolution batches).
  *
  * The full-resolution models are far too large for one GitHub Pages site, so

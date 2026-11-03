@@ -1,6 +1,6 @@
-import type { BaseCharData, GenshinCharData, HSRCharData, ZZZCharData, WuwaCharData, HNACharData, NTECharData, SnowbreakCharData, GirlsFrontlineCharData, ArknightsCharData } from "../sceneBuilder.types";
+import type { BaseCharData, GenshinCharData, HSRCharData, ZZZCharData, WuwaCharData, HNACharData, NTECharData, SnowbreakCharData, GirlsFrontlineCharData, ArknightsCharData, BlueArchiveCharData } from "../sceneBuilder.types";
 
-export type TabMode = "Genshin" | "HSR" | "ZZZ" | "WuWa" | "HNA" | "NTE" | "Snowbreak" | "GirlsFrontline" | "Arknights" | "None";
+export type TabMode = "Genshin" | "HSR" | "ZZZ" | "WuWa" | "HNA" | "NTE" | "Snowbreak" | "GirlsFrontline" | "Arknights" | "BlueArchive" | "None";
 
 export type SortModeKey = "id" | "name";
 
@@ -23,6 +23,8 @@ export interface CharacterData {
     girlsfrontlineSkins: GirlsFrontlineCharData[];
     arknights: ArknightsCharData[];
     arknightsSkins: ArknightsCharData[];
+    bluearchive: BlueArchiveCharData[];
+    bluearchiveSkins: BlueArchiveCharData[];
     allSkins: BaseCharData[];
 }
 
@@ -83,6 +85,7 @@ export interface SceneState {
     snowbreakFilter: FilterEntry[];
     girlsfrontlineFilter: FilterEntry[];
     arknightsFilter: FilterEntry[];
+    bluearchiveFilter: FilterEntry[];
     sortModeAscending: boolean;
     sortModeKey: SortModeKey;
     searchQuery: string;
@@ -155,6 +158,7 @@ export function createInitialState(isMobile: boolean): SceneState {
         // Girls' Frontline ids are 5 digits (80001+); same single-digit prefix rule.
         girlsfrontlineFilter: [{ key: "id", value: "8" }],
         arknightsFilter: [{ key: "id", value: "9" }],
+        bluearchiveFilter: [{ key: "id", value: "10" }],
         sortModeAscending: false,
         sortModeKey: "id",
         searchQuery: "",

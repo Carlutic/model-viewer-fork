@@ -17,6 +17,8 @@ export const createCharacterSlug = (str: string): string =>
 
 export const getFirstDigit = (num: number): number => {
     const str = Math.abs(num).toString();
+    // Six-digit ids use a two-digit category prefix (10 = Blue Archive).
+    if (str.length >= 6) return parseInt(str.slice(0, 2), 10);
     return parseInt(str[0], 10);
 };
 

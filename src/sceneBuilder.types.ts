@@ -35,4 +35,6 @@ export interface SnowbreakCharData extends BaseCharData {}
 export interface GirlsFrontlineCharData extends BaseCharData {}
 
 export interface ArknightsCharData extends BaseCharData {}
+
+export interface BlueArchiveCharData extends BaseCharData {}
 export interface ExtraCharData extends BaseCharData {}
