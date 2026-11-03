@@ -154,6 +154,12 @@ export const girlsFrontlineFilters: GameFilters = {
     weapon: []
 };
 
+export const arknightsFilters: GameFilters = {
+    rarity: [],
+    element: [],
+    weapon: []
+};
+
 export function getFiltersForTab(tab: string): GameFilters {
     switch (tab) {
         case "Genshin": return genshinFilters;
@@ -164,6 +170,7 @@ export function getFiltersForTab(tab: string): GameFilters {
         case "NTE": return nteFilters;
         case "Snowbreak": return snowbreakFilters;
         case "GirlsFrontline": return girlsFrontlineFilters;
+        case "Arknights": return arknightsFilters;
         default: return genshinFilters;
     }
 }

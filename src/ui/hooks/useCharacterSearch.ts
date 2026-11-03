@@ -29,7 +29,8 @@ export function useCharacterSearch(charData: CharacterData | null): (query: stri
             ...charData.hna,
             ...charData.nte,
             ...charData.snowbreak,
-            ...charData.girlsfrontline
+            ...charData.girlsfrontline,
+            ...charData.arknights
         ];
         const ms = new miniSearch({
             // `displayName` holds the Chinese/pretty name (e.g. "可露凯（无瑕侍礼）"),
@@ -54,6 +55,7 @@ export function useCharacterSearch(charData: CharacterData | null): (query: stri
                 else if (digit === 5) arr = charData.hna;
                 else if (digit === 7) arr = charData.snowbreak;
                 else if (digit === 8) arr = charData.girlsfrontline;
+                else if (digit === 9) arr = charData.arknights;
                 else arr = charData.nte;
                 const c = findCharByName(arr, r.name);
                 if (c) out.push(c);

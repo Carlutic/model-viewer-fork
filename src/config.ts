@@ -56,6 +56,14 @@ export function girlsFrontline2BaseUrl(): string {
 }
 
 /**
+ * Base URL of the Arknights (明日方舟) model library, served from the separate
+ * `Carlutic/arknights` repository's GitHub Pages site.
+ */
+export function arknightsBaseUrl(): string {
+    return "https://carlutic.github.io/arknights/";
+}
+
+/**
  * Additional Girls' Frontline libraries (original-resolution batches).
  *
  * The full-resolution models are far too large for one GitHub Pages site, so
