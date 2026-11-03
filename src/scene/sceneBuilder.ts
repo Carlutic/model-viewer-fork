@@ -1177,23 +1177,23 @@ export class SceneBuilder implements ISceneBuilder {
 
             if (preset === "endfield") {
                 // Cool grey-blue shadows + warm key light, dual rim light.
-                hemisphericLight.intensity = 0.5;
+                hemisphericLight.intensity = 0.58;
                 hemisphericLight.diffuse = new Color3(0.62, 0.74, 0.95);
                 hemisphericLight.groundColor = new Color3(0.34, 0.44, 0.62);
-                directionalLight.intensity = 1.35;
+                directionalLight.intensity = 1.25;
                 directionalLight.diffuse = new Color3(1.0, 0.95, 0.86);
-                rimLight.intensity = 0.9;
-                layer.color = new Color4(0.62, 0.68, 0.78, 1);
+                rimLight.intensity = 0.85;
+                layer.color = new Color4(0.72, 0.78, 0.88, 1);
                 scene.clearColor = new Color4(0.03, 0.04, 0.06, 1);
                 ip.toneMappingEnabled = true;
                 ip.toneMappingType = ImageProcessingConfiguration.TONEMAPPING_ACES;
-                ip.contrast = 1.22;
-                ip.exposure = -0.06;
+                ip.contrast = 1.12;
+                ip.exposure = 0.32;
                 ip.vignetteEnabled = true;
-                ip.vignetteWeight = 1.1;
+                ip.vignetteWeight = 0.8;
                 defaultPipeline.bloomEnabled = true;
-                defaultPipeline.bloomThreshold = 0.86;
-                defaultPipeline.bloomWeight = 0.28;
+                defaultPipeline.bloomThreshold = 0.9;
+                defaultPipeline.bloomWeight = 0.22;
                 defaultPipeline.bloomKernel = 48;
                 defaultPipeline.bloomScale = 0.5;
                 defaultPipeline.chromaticAberrationEnabled = true;
