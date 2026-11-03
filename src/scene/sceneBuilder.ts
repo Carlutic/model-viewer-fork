@@ -1183,8 +1183,8 @@ export class SceneBuilder implements ISceneBuilder {
             scene.clearColor.copyFrom(baseClearColor);
 
             if (preset === "default") {
-                // Plain original pipeline: no extra grading effects. This keeps the
-                // baseline render exactly as it was before render presets existed.
+                // Restore the scene exactly as it was built (lights/backdrop only).
+                safe(() => { defaultPipeline.imageProcessingEnabled = true; });
             } else if (preset === "off") {
                 defaultPipeline.imageProcessingEnabled = false;
             } else if (preset === "endfield") {
@@ -1232,7 +1232,6 @@ export class SceneBuilder implements ISceneBuilder {
             }
             store.set({ renderPreset: preset });
         };
-        applyRenderPreset(store.get().renderPreset);
         // Give createMmdRuntime access to the store so it can push isPlaying updates.
         storeRef = store;
         store.set({
