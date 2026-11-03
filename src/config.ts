@@ -54,3 +54,19 @@ export function girlsFrontlineBaseUrl(): string {
 export function girlsFrontline2BaseUrl(): string {
     return "https://carlutic.github.io/girl_frontline2/";
 }
+
+/**
+ * Additional Girls' Frontline libraries (original-resolution batches).
+ *
+ * The full-resolution models are far too large for one GitHub Pages site, so
+ * batch 2 is split across girl_frontline2..5. All manifests are merged into the
+ * same "Girls' Frontline" tab by the scene builder.
+ */
+export function girlsFrontlineLibraryBaseUrls(): string[] {
+    return [
+        "https://carlutic.github.io/girl_frontline2/",
+        "https://carlutic.github.io/girl_frontline3/",
+        "https://carlutic.github.io/girl_frontline4/",
+        "https://carlutic.github.io/girl_frontline5/",
+    ];
+}

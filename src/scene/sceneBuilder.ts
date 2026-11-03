@@ -1,4 +1,4 @@
-import { baseUrl, resUrl, snowbreakBaseUrl, girlsFrontlineBaseUrl, girlsFrontline2BaseUrl, urlBasePath } from "../config";// for use loading screen, we need to import following module.
+import { baseUrl, resUrl, snowbreakBaseUrl, girlsFrontlineBaseUrl, girlsFrontlineLibraryBaseUrls, urlBasePath } from "../config";// for use loading screen, we need to import following module.
 import "@babylonjs/core/Loading/loadingScreen";
 // for cast shadow, we need to import following module.
 import "@babylonjs/core/Lights/Shadows/shadowGeneratorSceneComponent";
@@ -150,19 +150,20 @@ export class SceneBuilder implements ISceneBuilder {
             console.warn("Girls' Frontline model library is unavailable; skipping the category:", error);
         }
 
-        // Second Girls' Frontline library (Carlutic/girl_frontline2). The first
-        // repository is close to the 1 GB GitHub Pages limit, so new batches live
-        // there; both manifests are merged into the same category.
-        const girlsFrontline2Base = girlsFrontline2BaseUrl();
-        try {
-            const charDatas2: BaseCharData[] = await (await fetch(`${girlsFrontline2Base}girl_frontline.json`)).json();
-            const skinDatas2: BaseCharData[] = await (await fetch(`${girlsFrontline2Base}skins.json`)).json();
-            for (const c of charDatas2) c.base = girlsFrontline2Base;
-            for (const c of skinDatas2) c.base = girlsFrontline2Base;
-            girlsFrontlineCharDatas = girlsFrontlineCharDatas.concat(charDatas2);
-            girlsFrontlineSkinCharDatas = girlsFrontlineSkinCharDatas.concat(skinDatas2);
-        } catch (error) {
-            console.warn("Girls' Frontline library #2 is unavailable; skipping it:", error);
+        // Additional Girls' Frontline libraries (original-resolution batches).
+        // The first repository is close to the 1 GB GitHub Pages limit, so batch 2
+        // is split across girl_frontline2..5; all manifests merge into one category.
+        for (const base of girlsFrontlineLibraryBaseUrls()) {
+            try {
+                const charDatasN: BaseCharData[] = await (await fetch(`${base}girl_frontline.json`)).json();
+                const skinDatasN: BaseCharData[] = await (await fetch(`${base}skins.json`)).json();
+                for (const c of charDatasN) c.base = base;
+                for (const c of skinDatasN) c.base = base;
+                girlsFrontlineCharDatas = girlsFrontlineCharDatas.concat(charDatasN);
+                girlsFrontlineSkinCharDatas = girlsFrontlineSkinCharDatas.concat(skinDatasN);
+            } catch (error) {
+                console.warn(`Girls' Frontline library ${base} is unavailable; skipping it:`, error);
+            }
         }
 
         const extraDataArray = extraCharDatas as ExtraCharData[];
