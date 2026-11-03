@@ -185,8 +185,8 @@ export class SceneBuilder implements ISceneBuilder {
         let blueArchiveSkinCharDatas: BaseCharData[] = [];
         for (const base of blueArchiveBaseUrls()) {
             try {
-                const charDatasB: BaseCharData[] = await (await fetch(`${base}bluearchive.json`)).json();
-                const skinDatasB: BaseCharData[] = await (await fetch(`${base}skins.json`)).json();
+                const charDatasB: BaseCharData[] = await (await fetch(`${base}bluearchive.json`, { cache: "no-cache" })).json();
+                const skinDatasB: BaseCharData[] = await (await fetch(`${base}skins.json`, { cache: "no-cache" })).json();
                 for (const c of charDatasB) c.base = base;
                 for (const c of skinDatasB) c.base = base;
                 blueArchiveCharDatas = blueArchiveCharDatas.concat(charDatasB);
