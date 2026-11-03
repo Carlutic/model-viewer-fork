@@ -1159,7 +1159,7 @@ export class SceneBuilder implements ISceneBuilder {
             // Character-focused preset: adjust the MMD materials on the next model
             // build and enable/disable the cool rim light. No screen-wide overlay.
             setMaterialRenderPreset(preset);
-            rimLight.intensity = preset === "endfield" ? 0.55 : 0;
+            rimLight.intensity = preset === "endfield" ? 0.75 : 0;
             try {
                 localStorage.setItem("model-viewer.renderPreset", preset);
             } catch { /* ignore */ }

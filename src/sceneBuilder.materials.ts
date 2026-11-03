@@ -60,11 +60,11 @@ function applyRenderPresetToMaterial(material: MmdStandardMaterial): void {
         // Endfield-ish cel look: thicker dark-blue outline, lifted cool shadows,
         // slightly warm daylit texture, tighter specular highlight.
         const width = material.outlineWidth;
-        if (width > 0) material.outlineWidth = width * 1.9;
-        material.outlineColor = new Color3(0.02, 0.03, 0.06);
+        if (width > 0) material.outlineWidth = width * 2.4;
+        material.outlineColor = new Color3(0.015, 0.025, 0.05);
         material.textureMultiplicativeColor = new Color4(1.02, 1.0, 0.97, 1);
         material.textureAdditiveColor = new Color4(0.008, 0.011, 0.016, 0);
-        material.specularColor = new Color3(0.18, 0.19, 0.22);
+        material.specularColor = new Color3(0.12, 0.13, 0.16);
         material.specularPower = 48;
     } else if (materialRenderPreset === "off") {
         // Flat render: no outline hull, no stylised speculars.
