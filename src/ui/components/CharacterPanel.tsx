@@ -1,5 +1,5 @@
 import type { JSX } from "preact";
-import { useMemo, useState } from "preact/hooks";
+import { useEffect, useMemo, useRef, useState } from "preact/hooks";
 import { baseUrl, resUrl } from "../../config";
 import type { SceneApi } from "../../scene/sceneApi";
 import type { FilterEntry, SceneState, TabMode } from "../../scene/sceneState";
@@ -81,6 +81,47 @@ export function CharacterPanel({ api, state }: Props): JSX.Element | null {
     const searchFn = useCharacterSearch(state.charData);
     const [dragged, setDragged] = useState(false);
     const [hoverName, setHoverName] = useState("");
+
+    // Horizontally scrollable IP tab strip (mouse wheel, drag, arrow buttons).
+    const tabStripRef = useRef<HTMLDivElement>(null);
+    const tabDrag = useRef({ active: false, startX: 0, startLeft: 0, moved: false });
+    const [tabScroll, setTabScroll] = useState({ left: false, right: false });
+
+    const updateTabScroll = (): void => {
+        const el = tabStripRef.current;
+        if (!el) return;
+        setTabScroll({
+            left: el.scrollLeft > 2,
+            right: el.scrollLeft + el.clientWidth < el.scrollWidth - 2
+        });
+    };
+
+    useEffect(() => {
+        updateTabScroll();
+        const el = tabStripRef.current;
+        const onResize = (): void => updateTabScroll();
+        window.addEventListener("resize", onResize);
+        if (el) el.addEventListener("scroll", updateTabScroll, { passive: true });
+        return () => {
+            window.removeEventListener("resize", onResize);
+            if (el) el.removeEventListener("scroll", updateTabScroll);
+        };
+    }, []);
+
+    useEffect(() => {
+        const el = tabStripRef.current;
+        if (!el) return;
+        const btn = el.querySelector<HTMLElement>(`[data-tab="${state.tabMode}"]`);
+        if (btn) btn.scrollIntoView({ inline: "nearest", block: "nearest", behavior: "smooth" });
+        const timer = window.setTimeout(updateTabScroll, 400);
+        return () => window.clearTimeout(timer);
+    }, [state.tabMode]);
+
+    const scrollTabs = (dir: number): void => {
+        const el = tabStripRef.current;
+        if (!el) return;
+        el.scrollBy({ left: dir * Math.max(160, el.clientWidth * 0.6), behavior: "smooth" });
+    };
 
     type ActiveTab = "Genshin" | "HSR" | "ZZZ" | "WuWa" | "HNA" | "NTE" | "Snowbreak" | "GirlsFrontline" | "Arknights" | "BlueArchive" | "Idolmaster";
     const activeTab: ActiveTab = state.tabMode === "None" ? "Genshin" : state.tabMode;
@@ -176,18 +217,79 @@ export function CharacterPanel({ api, state }: Props): JSX.Element | null {
                     ✕
                 </button>
 
-                {/* Tab bar */}
-                <div class="flex justify-center gap-1 sm:gap-2 p-2 sm:p-3 pr-12 sm:pr-3">
-                    {TAB_TEXT.map(t => (
+                {/* Tab bar — scrollable when there are more IPs than fit */}
+                <div class="relative flex items-center pr-10 sm:pr-0">
+                    {tabScroll.left && (
                         <button
-                            key={t.key}
-                            class={`text-xs sm:text-sm px-2 sm:px-3 py-2 rounded-xl flex-1 ${state.tabMode === t.key ? "bg-[rgb(64,68,70)]" : "bg-transparent"}`}
-                            onClick={(): void => api.setTab(t.key)}
+                            class="absolute left-0 top-0 bottom-0 z-10 w-6 flex items-center justify-center bg-gradient-to-r from-[rgb(44,48,50)] to-transparent text-white/80 hover:text-white text-lg leading-none select-none"
+                            onClick={(): void => scrollTabs(-1)}
+                            aria-label="Scroll tabs left"
+                            title="Scroll tabs left"
                         >
-                            <span class="hidden sm:inline">{t.label}</span>
-                            <span class="sm:hidden">{t.short}</span>
+                            ‹
                         </button>
-                    ))}
+                    )}
+                    <div
+                        ref={tabStripRef}
+                        class="tab-strip flex gap-1 sm:gap-2 p-2 sm:p-3 overflow-x-auto flex-1"
+                        onWheel={(e): void => {
+                            const el = tabStripRef.current;
+                            if (!el) return;
+                            if (Math.abs(e.deltaY) > Math.abs(e.deltaX)) {
+                                el.scrollLeft += e.deltaY;
+                                e.preventDefault();
+                            }
+                        }}
+                        onPointerDown={(e): void => {
+                            const el = tabStripRef.current;
+                            if (!el || e.pointerType === "touch") return;
+                            tabDrag.current = { active: true, startX: e.clientX, startLeft: el.scrollLeft, moved: false };
+                            el.setPointerCapture(e.pointerId);
+                        }}
+                        onPointerMove={(e): void => {
+                            const el = tabStripRef.current;
+                            if (!el || !tabDrag.current.active) return;
+                            const dx = e.clientX - tabDrag.current.startX;
+                            if (Math.abs(dx) > 4) tabDrag.current.moved = true;
+                            el.scrollLeft = tabDrag.current.startLeft - dx;
+                        }}
+                        onPointerUp={(e): void => {
+                            const el = tabStripRef.current;
+                            if (!el) return;
+                            tabDrag.current.active = false;
+                            try { el.releasePointerCapture(e.pointerId); } catch { /* ignore */ }
+                        }}
+                        onPointerCancel={(): void => { tabDrag.current.active = false; }}
+                        onClickCapture={(e): void => {
+                            if (tabDrag.current.moved) {
+                                e.preventDefault();
+                                e.stopPropagation();
+                                tabDrag.current.moved = false;
+                            }
+                        }}
+                    >
+                        {TAB_TEXT.map(t => (
+                            <button
+                                key={t.key}
+                                data-tab={t.key}
+                                class={`text-xs sm:text-sm px-2 sm:px-3 py-2 rounded-xl shrink-0 whitespace-nowrap ${state.tabMode === t.key ? "bg-[rgb(64,68,70)]" : "bg-transparent"}`}
+                                onClick={(): void => api.setTab(t.key)}
+                            >
+                                <span class="hidden sm:inline">{t.label}</span>
+                                <span class="sm:hidden">{t.short}</span>
+                            </button>
+                        ))}
+                    </div>
+                    {tabScroll.right && (
+                        <button
+                            class="absolute right-0 top-0 bottom-0 z-10 w-6 flex items-center justify-center bg-gradient-to-l from-[rgb(44,48,50)] to-transparent text-white/80 hover:text-white text-lg leading-none select-none"
+                            onClick={(): void => scrollTabs(1)}
+                            aria-label="Scroll tabs right"
+                            title="Scroll tabs right"
+                        >
+                            ›
+                        </button>
+                    )}
                 </div>
 
                 {/* Filter bar row 1: sort + rarity + hover-name + element filters
