@@ -71,6 +71,13 @@ export function idolmasterBaseUrl(): string {
     return "https://carlutic.github.io/idolmaster/";
 }
 
+export function othersBaseUrls(): string[] {
+    return [
+        "https://carlutic.github.io/others/",
+        "https://carlutic.github.io/others2/",
+    ];
+}
+
 export function blueArchiveBaseUrls(): string[] {
     return [
         "https://carlutic.github.io/bluearchive/",

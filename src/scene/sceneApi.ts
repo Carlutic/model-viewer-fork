@@ -35,11 +35,11 @@ export interface SceneApi {
     openSupport(): void;
     generateReferenceSheet(): Promise<void>;
     setSearchQuery(q: string): void;
-    setTab(tab: "Genshin" | "HSR" | "ZZZ" | "WuWa" | "HNA" | "NTE" | "Snowbreak" | "GirlsFrontline" | "Arknights" | "BlueArchive" | "Idolmaster"): void;
+    setTab(tab: "Genshin" | "HSR" | "ZZZ" | "WuWa" | "HNA" | "NTE" | "Snowbreak" | "GirlsFrontline" | "Arknights" | "BlueArchive" | "Idolmaster" | "Others"): void;
     setSortAscending(asc: boolean): void;
     toggleSortAscending(): void;
     toggleSortModeKey(): void;
-    setFilter(tab: "Genshin" | "HSR" | "ZZZ" | "WuWa" | "HNA" | "NTE" | "Snowbreak" | "GirlsFrontline" | "Arknights" | "BlueArchive" | "Idolmaster", key: string, value: string): void;
+    setFilter(tab: "Genshin" | "HSR" | "ZZZ" | "WuWa" | "HNA" | "NTE" | "Snowbreak" | "GirlsFrontline" | "Arknights" | "BlueArchive" | "Idolmaster" | "Others", key: string, value: string): void;
     // Material morphs (part/outfit switches) of the loaded model.
     setMorphWeight(name: string, weight: number): void;
     resetMorphs(): void;
