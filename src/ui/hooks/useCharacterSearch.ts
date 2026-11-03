@@ -33,6 +33,7 @@ export function useCharacterSearch(charData: CharacterData | null): (query: stri
             ...charData.arknights,
             ...charData.bluearchive,
             ...charData.idolmaster,
+            ...charData.goodthings,
             ...charData.others
         ];
         const ms = new miniSearch({
@@ -61,6 +62,7 @@ export function useCharacterSearch(charData: CharacterData | null): (query: stri
                 else if (digit === 9) arr = charData.arknights;
                 else if (digit === 10) arr = charData.bluearchive;
                 else if (digit === 11) arr = charData.idolmaster;
+                else if (digit === 13) arr = charData.goodthings;
                 else if (digit === 12) arr = charData.others;
                 else arr = charData.nte;
                 const c = findCharByName(arr, r.name);

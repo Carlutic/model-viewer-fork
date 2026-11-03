@@ -67,6 +67,14 @@ export function arknightsBaseUrl(): string {
  * Base URLs of the Blue Archive (碧蓝档案) model libraries. The full-resolution
  * models are split across two repositories to stay under the Pages size limit.
  */
+/**
+ * URL of the GoodThings library list (a JSON array of part base URLs). New parts
+ * are appended to that file, so the viewer does not need a rebuild per batch.
+ */
+export function goodThingsLibsUrl(): string {
+    return "https://carlutic.github.io/goodthings/libs.json";
+}
+
 export function idolmasterBaseUrl(): string {
     return "https://carlutic.github.io/idolmaster/";
 }

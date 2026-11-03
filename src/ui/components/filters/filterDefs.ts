@@ -178,6 +178,12 @@ export const othersFilters: GameFilters = {
     weapon: []
 };
 
+export const goodThingsFilters: GameFilters = {
+    rarity: [],
+    element: [],
+    weapon: []
+};
+
 export function getFiltersForTab(tab: string): GameFilters {
     switch (tab) {
         case "Genshin": return genshinFilters;
@@ -191,6 +197,7 @@ export function getFiltersForTab(tab: string): GameFilters {
         case "Arknights": return arknightsFilters;
         case "BlueArchive": return blueArchiveFilters;
         case "Idolmaster": return idolmasterFilters;
+        case "GoodThings": return goodThingsFilters;
         case "Others": return othersFilters;
         default: return genshinFilters;
     }

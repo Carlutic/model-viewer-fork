@@ -14,7 +14,7 @@ interface Props {
     state: SceneState;
 }
 
-type NamedTab = "Genshin" | "HSR" | "ZZZ" | "WuWa" | "HNA" | "NTE" | "Snowbreak" | "GirlsFrontline" | "Arknights" | "BlueArchive" | "Idolmaster" | "Others";
+type NamedTab = "Genshin" | "HSR" | "ZZZ" | "WuWa" | "HNA" | "NTE" | "Snowbreak" | "GirlsFrontline" | "Arknights" | "BlueArchive" | "Idolmaster" | "GoodThings" | "Others";
 const TAB_TEXT: { key: NamedTab; label: string; short: string }[] = [
     { key: "Genshin", label: "Genshin Impact", short: "Genshin" },
     { key: "HSR", label: "Honkai: Star Rail", short: "HSR" },
@@ -27,6 +27,7 @@ const TAB_TEXT: { key: NamedTab; label: string; short: string }[] = [
     { key: "Arknights", label: "Arknights", short: "AK" },
     { key: "BlueArchive", label: "Blue Archive", short: "BA" },
     { key: "Idolmaster", label: "Idolmaster", short: "IM" },
+    { key: "GoodThings", label: "Good Things", short: "GT" },
     { key: "Others", label: "Others", short: "OT" }
 ];
 
@@ -54,6 +55,7 @@ function getFilterField(state: SceneState, tab: TabMode): FilterEntry[] {
         case "Arknights": return state.arknightsFilter;
         case "BlueArchive": return state.bluearchiveFilter;
         case "Idolmaster": return state.idolmasterFilter;
+        case "GoodThings": return state.goodthingsFilter;
         case "Others": return state.othersFilter;
         default: return state.genshinFilter;
     }
@@ -74,6 +76,7 @@ function getMainArray(state: SceneState, tab: TabMode): BaseCharData[] {
         case "Arknights": return cd.arknights;
         case "BlueArchive": return cd.bluearchive;
         case "Idolmaster": return cd.idolmaster;
+        case "GoodThings": return cd.goodthings;
         case "Others": return cd.others;
         default: return cd.genshin;
     }
@@ -128,7 +131,7 @@ export function CharacterPanel({ api, state }: Props): JSX.Element | null {
         el.scrollBy({ left: dir * Math.max(160, el.clientWidth * 0.6), behavior: "smooth" });
     };
 
-    type ActiveTab = "Genshin" | "HSR" | "ZZZ" | "WuWa" | "HNA" | "NTE" | "Snowbreak" | "GirlsFrontline" | "Arknights" | "BlueArchive" | "Idolmaster" | "Others";
+    type ActiveTab = "Genshin" | "HSR" | "ZZZ" | "WuWa" | "HNA" | "NTE" | "Snowbreak" | "GirlsFrontline" | "Arknights" | "BlueArchive" | "Idolmaster" | "GoodThings" | "Others";
     const activeTab: ActiveTab = state.tabMode === "None" ? "Genshin" : state.tabMode;
     const filters = getFiltersForTab(activeTab);
     const filterArray = getFilterField(state, activeTab);

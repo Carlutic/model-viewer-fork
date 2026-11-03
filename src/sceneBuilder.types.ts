@@ -40,5 +40,7 @@ export interface BlueArchiveCharData extends BaseCharData {}
 
 export interface IdolmasterCharData extends BaseCharData {}
 
+export interface GoodThingsCharData extends BaseCharData {}
+
 export interface OthersCharData extends BaseCharData {}
 export interface ExtraCharData extends BaseCharData {}

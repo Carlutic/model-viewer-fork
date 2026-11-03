@@ -1,8 +1,8 @@
-import type { BaseCharData, GenshinCharData, HSRCharData, ZZZCharData, WuwaCharData, HNACharData, NTECharData, SnowbreakCharData, GirlsFrontlineCharData, ArknightsCharData, BlueArchiveCharData, IdolmasterCharData, OthersCharData } from "../sceneBuilder.types";
+import type { BaseCharData, GenshinCharData, HSRCharData, ZZZCharData, WuwaCharData, HNACharData, NTECharData, SnowbreakCharData, GirlsFrontlineCharData, ArknightsCharData, BlueArchiveCharData, IdolmasterCharData, GoodThingsCharData, OthersCharData } from "../sceneBuilder.types";
 
 export type RenderPreset = "default" | "endfield" | "off";
 
-export type TabMode = "Genshin" | "HSR" | "ZZZ" | "WuWa" | "HNA" | "NTE" | "Snowbreak" | "GirlsFrontline" | "Arknights" | "BlueArchive" | "Idolmaster" | "Others" | "None";
+export type TabMode = "Genshin" | "HSR" | "ZZZ" | "WuWa" | "HNA" | "NTE" | "Snowbreak" | "GirlsFrontline" | "Arknights" | "BlueArchive" | "Idolmaster" | "GoodThings" | "Others" | "None";
 
 export type SortModeKey = "id" | "name";
 
@@ -29,6 +29,8 @@ export interface CharacterData {
     bluearchiveSkins: BlueArchiveCharData[];
     idolmaster: IdolmasterCharData[];
     idolmasterSkins: IdolmasterCharData[];
+    goodthings: GoodThingsCharData[];
+    goodthingsSkins: GoodThingsCharData[];
     others: OthersCharData[];
     othersSkins: OthersCharData[];
     allSkins: BaseCharData[];
@@ -96,6 +98,7 @@ export interface SceneState {
     arknightsFilter: FilterEntry[];
     bluearchiveFilter: FilterEntry[];
     idolmasterFilter: FilterEntry[];
+    goodthingsFilter: FilterEntry[];
     othersFilter: FilterEntry[];
     sortModeAscending: boolean;
     sortModeKey: SortModeKey;
@@ -173,6 +176,7 @@ export function createInitialState(isMobile: boolean): SceneState {
         arknightsFilter: [{ key: "id", value: "9" }],
         bluearchiveFilter: [{ key: "id", value: "10" }],
         idolmasterFilter: [{ key: "id", value: "11" }],
+        goodthingsFilter: [{ key: "id", value: "13" }],
         othersFilter: [{ key: "id", value: "12" }],
         sortModeAscending: false,
         sortModeKey: "id",
