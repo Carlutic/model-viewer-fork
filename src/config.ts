@@ -71,6 +71,7 @@ export function blueArchiveBaseUrls(): string[] {
     return [
         "https://carlutic.github.io/bluearchive/",
         "https://carlutic.github.io/bluearchive2/",
+        "https://carlutic.github.io/bluearchive3/",
     ];
 }
 
