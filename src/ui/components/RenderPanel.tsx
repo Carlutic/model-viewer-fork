@@ -40,7 +40,7 @@ export function RenderPanel({ api, state }: Props): JSX.Element | null {
             ref={panelRef}
             class="pointer-events-auto absolute bg-[rgb(44,48,50)] text-white rounded-lg overflow-y-auto shadow-lg
                    w-[260px] max-h-[420px] text-sm sm:w-[290px] sm:text-base"
-            style={{ left: "60px", top: "260px" }}
+            style={{ left: "120px", top: "260px" }}
         >
             <div class="px-3 py-2 text-base font-semibold tracking-wide border-b border-white/10">渲染设置</div>
 

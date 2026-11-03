@@ -185,7 +185,7 @@ export function Toolbar({ api, state }: Props): JSX.Element {
                 class={btnStyle}
                 style={{
                     position: "absolute",
-                    left: `${gap}px`,
+                    left: `${gap + step}px`,
                     top: topAt(5),
                     background: (state.isRenderPanelOpen || state.renderPreset !== "off") ? "rgba(119,119,119,0.5)" : "transparent",
                     borderRadius: "10px"
