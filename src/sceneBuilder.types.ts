@@ -42,6 +42,8 @@ export interface IdolmasterCharData extends BaseCharData {}
 
 export interface GoodThingsCharData extends BaseCharData {}
 
+export interface HbrCharData extends BaseCharData {}
+
 export interface ScenePropItem {
     pmx: string;
     scale: number;

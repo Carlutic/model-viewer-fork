@@ -1,4 +1,4 @@
-import { baseUrl, resUrl, snowbreakBaseUrl, girlsFrontlineBaseUrl, girlsFrontlineLibraryBaseUrls, arknightsBaseUrl, blueArchiveBaseUrls, idolmasterBaseUrl, goodThingsLibsUrl, scenesBaseUrl, othersBaseUrls, urlBasePath } from "../config";// for use loading screen, we need to import following module.
+import { baseUrl, resUrl, snowbreakBaseUrl, girlsFrontlineBaseUrl, girlsFrontlineLibraryBaseUrls, arknightsBaseUrl, blueArchiveBaseUrls, idolmasterBaseUrl, goodThingsLibsUrl, hbrBaseUrl, scenesBaseUrl, othersBaseUrls, urlBasePath } from "../config";// for use loading screen, we need to import following module.
 import "@babylonjs/core/Loading/loadingScreen";
 // for cast shadow, we need to import following module.
 import "@babylonjs/core/Lights/Shadows/shadowGeneratorSceneComponent";
@@ -70,7 +70,7 @@ import type { ISceneBuilder } from "../baseRuntime";
 import { CustomLoadingScreen } from "../CustomLoadingScreen";
 import { FirebaseInstance } from "../fb";
 import { mobileMmdPlayerControl } from "../mobileMmdPlayerControl";
-import type { BaseCharData, GenshinCharData, HSRCharData, ZZZCharData, WuwaCharData, HNACharData, NTECharData, SnowbreakCharData, GirlsFrontlineCharData, ArknightsCharData, BlueArchiveCharData, IdolmasterCharData, GoodThingsCharData, OthersCharData, SceneItem, ExtraCharData } from "../sceneBuilder.types";
+import type { BaseCharData, GenshinCharData, HSRCharData, ZZZCharData, WuwaCharData, HNACharData, NTECharData, SnowbreakCharData, GirlsFrontlineCharData, ArknightsCharData, BlueArchiveCharData, IdolmasterCharData, GoodThingsCharData, HbrCharData, OthersCharData, SceneItem, ExtraCharData } from "../sceneBuilder.types";
 import { normalize, getFirstDigit, findCharByName, findCharById, findAllCharsByName, createCharacterSlug } from "../sceneBuilder.utils";
 import { afterBuildSingleMaterialDefault, afterBuildSingleMaterialSt, setMaterialRenderPreset } from "../sceneBuilder.materials";
 import { getFiltersForTab } from "../ui/components/filters/filterDefs";
@@ -236,6 +236,21 @@ export class SceneBuilder implements ISceneBuilder {
             console.warn("GoodThings library list is unavailable; skipping the category:", error);
         }
 
+        // Heaven Burns Red model library (Carlutic/hbr, see config.ts). The models
+        // are FBX in the source archive; they are converted to PMX (same pose, same
+        // textures) so the MMD pipeline can render them.
+        const hbrBase = hbrBaseUrl();
+        let hbrCharDatas: BaseCharData[] = [];
+        let hbrSkinCharDatas: BaseCharData[] = [];
+        try {
+            hbrCharDatas = await (await fetch(`${hbrBase}hbr.json`, { cache: "no-cache" })).json();
+            hbrSkinCharDatas = await (await fetch(`${hbrBase}skins.json`, { cache: "no-cache" })).json();
+            for (const c of hbrCharDatas) c.base = hbrBase;
+            for (const c of hbrSkinCharDatas) c.base = hbrBase;
+        } catch (error) {
+            console.warn("Heaven Burns Red model library is unavailable; skipping the category:", error);
+        }
+
         // THE IDOLM@STER model library (Carlutic/idolmaster, see config.ts).
         let idolmasterCharDatas: BaseCharData[] = [];
         let idolmasterSkinCharDatas: BaseCharData[] = [];
@@ -308,6 +323,8 @@ export class SceneBuilder implements ISceneBuilder {
         const idolmasterSkinDataArray = idolmasterSkinCharDatas as IdolmasterCharData[];
         const goodThingsCharDataArray = goodThingsCharDatas as GoodThingsCharData[];
         const goodThingsSkinDataArray = goodThingsSkinCharDatas as GoodThingsCharData[];
+        const hbrCharDataArray = hbrCharDatas as HbrCharData[];
+        const hbrSkinDataArray = hbrSkinCharDatas as HbrCharData[];
         const othersCharDataArray = othersCharDatas as OthersCharData[];
         const othersSkinDataArray = othersSkinCharDatas as OthersCharData[];
         const arraysToSort = [
@@ -323,7 +340,7 @@ export class SceneBuilder implements ISceneBuilder {
         ];
         arraysToSort.forEach(a => a.sort((x, y) => y.id - x.id));
 
-        type AllCharData = GenshinCharData | HSRCharData | ZZZCharData | WuwaCharData | NTECharData | SnowbreakCharData | GirlsFrontlineCharData | ArknightsCharData | BlueArchiveCharData | IdolmasterCharData | GoodThingsCharData | OthersCharData;
+        type AllCharData = GenshinCharData | HSRCharData | ZZZCharData | WuwaCharData | NTECharData | SnowbreakCharData | GirlsFrontlineCharData | ArknightsCharData | BlueArchiveCharData | IdolmasterCharData | GoodThingsCharData | HbrCharData | OthersCharData;
         const allCharDataArray: AllCharData[] = [
             ...charDataArray, ...hsrCharDataArray, ...zzzCharDataArray,
             ...wuwaCharDataArray, ...hnaCharDataArray, ...nteCharDataArray,
@@ -332,6 +349,7 @@ export class SceneBuilder implements ISceneBuilder {
             ...blueArchiveCharDataArray,
             ...idolmasterCharDataArray,
             ...goodThingsCharDataArray,
+            ...hbrCharDataArray,
             ...othersCharDataArray
         ];
         const allSkinCharDataArray: AllCharData[] = [
@@ -342,6 +360,7 @@ export class SceneBuilder implements ISceneBuilder {
             ...blueArchiveSkinDataArray,
             ...idolmasterSkinDataArray,
             ...goodThingsSkinDataArray,
+            ...hbrSkinDataArray,
             ...othersSkinDataArray
         ];
         const miniSearchInstance = new miniSearch({
@@ -368,6 +387,7 @@ export class SceneBuilder implements ISceneBuilder {
                 else if (tabById == 9) { fallbackItem = findCharByName(arknightsCharDataArray, results[0].name); tabModeLocal = "Arknights"; }
                 else if (tabById == 10) { fallbackItem = findCharByName(blueArchiveCharDataArray, results[0].name); tabModeLocal = "BlueArchive"; }
                 else if (tabById == 11) { fallbackItem = findCharByName(idolmasterCharDataArray, results[0].name); tabModeLocal = "Idolmaster"; }
+                else if (tabById == 14) { fallbackItem = findCharByName(hbrCharDataArray, results[0].name); tabModeLocal = "HeavenBurnsRed"; }
                 else if (tabById == 13) { fallbackItem = findCharByName(goodThingsCharDataArray, results[0].name); tabModeLocal = "GoodThings"; }
                 else if (tabById == 12) { fallbackItem = findCharByName(othersCharDataArray, results[0].name); tabModeLocal = "Others"; }
                 else { fallbackItem = findCharByName(nteCharDataArray, results[0].name); tabModeLocal = "NTE"; }
@@ -1209,6 +1229,8 @@ export class SceneBuilder implements ISceneBuilder {
             idolmasterSkins: idolmasterSkinDataArray,
             goodthings: goodThingsCharDataArray,
             goodthingsSkins: goodThingsSkinDataArray,
+            hbr: hbrCharDataArray,
+            hbrSkins: hbrSkinDataArray,
             others: othersCharDataArray,
             othersSkins: othersSkinDataArray,
             allSkins: allSkinCharDataArray as BaseCharData[]
@@ -1292,6 +1314,7 @@ export class SceneBuilder implements ISceneBuilder {
                 BlueArchive: blueArchiveSkinDataArray,
                 Idolmaster: idolmasterSkinDataArray,
                 GoodThings: goodThingsSkinDataArray,
+                HeavenBurnsRed: hbrSkinDataArray,
                 Others: othersSkinDataArray
             };
             const skinArray = initialSkinArrays[firstTabMode as string];
@@ -1489,6 +1512,7 @@ export class SceneBuilder implements ISceneBuilder {
                                                     firstDigit === 9 ? "Arknights" :
                                                     firstDigit === 10 ? "BlueArchive" :
                                                     firstDigit === 11 ? "Idolmaster" :
+                                                    firstDigit === 14 ? "HeavenBurnsRed" :
                                                     firstDigit === 13 ? "GoodThings" :
                                                     firstDigit === 12 ? "Others" :
                                                     undefined;
@@ -1510,6 +1534,7 @@ export class SceneBuilder implements ISceneBuilder {
                 else if (firstDigit === 10 || tabMode === "BlueArchive") skinChars = findAllCharsByName(blueArchiveSkinDataArray, chosenChar!.name);
                 else if (firstDigit === 11 || tabMode === "Idolmaster") skinChars = findAllCharsByName(idolmasterSkinDataArray, chosenChar!.name);
                 else if (firstDigit === 13 || tabMode === "GoodThings") skinChars = findAllCharsByName(goodThingsSkinDataArray, chosenChar!.name);
+                else if (firstDigit === 14 || tabMode === "HeavenBurnsRed") skinChars = findAllCharsByName(hbrSkinDataArray, chosenChar!.name);
                 else if (firstDigit === 12 || tabMode === "Others") skinChars = findAllCharsByName(othersSkinDataArray, chosenChar!.name);
                 if (skinChars && skinChars.length > 0) {
                     store.set({ hasSkinButton: true });
@@ -1647,6 +1672,16 @@ export class SceneBuilder implements ISceneBuilder {
                         samePrev: () => prevCharName == chosenCharName && prevCharId == chosenChar?.id,
                         findForNonSame: () => findCharById(idolmasterCharDataArray, nextId!)
                     };
+                } else if (firstDigit == 14 || tabMode == "HeavenBurnsRed") {
+                    tabMode = "HeavenBurnsRed";
+                    cfg = {
+                        tab: "HeavenBurnsRed",
+                        mainArray: hbrCharDataArray,
+                        skinArray: hbrSkinDataArray,
+                        resetToNormalArray: hbrCharDataArray,
+                        samePrev: () => prevCharName == chosenCharName && prevCharId == chosenChar?.id,
+                        findForNonSame: () => findCharById(hbrCharDataArray, nextId!)
+                    };
                 } else if (firstDigit == 13 || tabMode == "GoodThings") {
                     tabMode = "GoodThings";
                     cfg = {
@@ -1720,6 +1755,7 @@ export class SceneBuilder implements ISceneBuilder {
                                                 (firstDigit === 9) ? arknightsCharDataArray :
                                                 (firstDigit === 10) ? blueArchiveCharDataArray :
                                                 (firstDigit === 11) ? idolmasterCharDataArray :
+                                                (firstDigit === 14) ? hbrCharDataArray :
                                                 (firstDigit === 13) ? goodThingsCharDataArray :
                                                 (firstDigit === 12) ? othersCharDataArray :
                                                 charDataArray,
@@ -1781,7 +1817,7 @@ export class SceneBuilder implements ISceneBuilder {
             } else {
                 charScreenMode = true;
             }
-            if (tabMode == "WuWa" || tabMode == "ZZZ" || tabMode == "NTE" || tabMode == "Snowbreak" || tabMode == "GirlsFrontline" || tabMode == "Arknights" || tabMode == "BlueArchive" || tabMode == "Idolmaster" || tabMode == "GoodThings" || tabMode == "Others" || (tabMode == "None" && (firstDigitGlobal == 4 || firstDigitGlobal == 12 || firstDigitGlobal == 3 || firstDigitGlobal == 6 || firstDigitGlobal == 7 || firstDigitGlobal == 8 || firstDigitGlobal == 9 || firstDigitGlobal == 10 || firstDigitGlobal == 11 || firstDigitGlobal == 13))) {
+            if (tabMode == "WuWa" || tabMode == "ZZZ" || tabMode == "NTE" || tabMode == "Snowbreak" || tabMode == "GirlsFrontline" || tabMode == "Arknights" || tabMode == "BlueArchive" || tabMode == "Idolmaster" || tabMode == "GoodThings" || tabMode == "HeavenBurnsRed" || tabMode == "Others" || (tabMode == "None" && (firstDigitGlobal == 4 || firstDigitGlobal == 12 || firstDigitGlobal == 3 || firstDigitGlobal == 6 || firstDigitGlobal == 7 || firstDigitGlobal == 8 || firstDigitGlobal == 9 || firstDigitGlobal == 10 || firstDigitGlobal == 11 || firstDigitGlobal == 13 || firstDigitGlobal == 14))) {
                 charScreenMode = true;
                 charScreenElement = "Universal";
             } else if (tabMode == "HSR" || tabMode == "HNA" || (tabMode == "None" && (firstDigitGlobal == 2 || firstDigitGlobal == 5))) {
@@ -2620,6 +2656,7 @@ export class SceneBuilder implements ISceneBuilder {
                                                     tab === "BlueArchive" ? "bluearchiveFilter" :
                                                     tab === "Idolmaster" ? "idolmasterFilter" :
                                                     tab === "GoodThings" ? "goodthingsFilter" :
+                                                    tab === "HeavenBurnsRed" ? "hbrFilter" :
                                                     tab === "Others" ? "othersFilter" :
                                                     "nteFilter";
                 const filterKey = filterField as keyof typeof s;

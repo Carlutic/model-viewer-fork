@@ -74,6 +74,10 @@ export function arknightsBaseUrl(): string {
 /**
  * Base URL of the MMD scene/stage library.
  */
+export function hbrBaseUrl(): string {
+    return "https://carlutic.github.io/hbr/";
+}
+
 export function scenesBaseUrl(): string {
     return "https://carlutic.github.io/scenes/";
 }

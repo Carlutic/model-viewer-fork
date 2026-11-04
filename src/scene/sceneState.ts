@@ -1,8 +1,8 @@
-import type { BaseCharData, GenshinCharData, HSRCharData, ZZZCharData, WuwaCharData, HNACharData, NTECharData, SnowbreakCharData, GirlsFrontlineCharData, ArknightsCharData, BlueArchiveCharData, IdolmasterCharData, GoodThingsCharData, OthersCharData } from "../sceneBuilder.types";
+import type { BaseCharData, GenshinCharData, HSRCharData, ZZZCharData, WuwaCharData, HNACharData, NTECharData, SnowbreakCharData, GirlsFrontlineCharData, ArknightsCharData, BlueArchiveCharData, IdolmasterCharData, GoodThingsCharData, HbrCharData, OthersCharData } from "../sceneBuilder.types";
 
 export type RenderPreset = "default" | "endfield" | "off";
 
-export type TabMode = "Genshin" | "HSR" | "ZZZ" | "WuWa" | "HNA" | "NTE" | "Snowbreak" | "GirlsFrontline" | "Arknights" | "BlueArchive" | "Idolmaster" | "GoodThings" | "Others" | "None";
+export type TabMode = "Genshin" | "HSR" | "ZZZ" | "WuWa" | "HNA" | "NTE" | "Snowbreak" | "GirlsFrontline" | "Arknights" | "BlueArchive" | "Idolmaster" | "GoodThings" | "Others" | "HeavenBurnsRed" | "None";
 
 export type SortModeKey = "id" | "name";
 
@@ -31,6 +31,8 @@ export interface CharacterData {
     idolmasterSkins: IdolmasterCharData[];
     goodthings: GoodThingsCharData[];
     goodthingsSkins: GoodThingsCharData[];
+    hbr: HbrCharData[];
+    hbrSkins: HbrCharData[];
     others: OthersCharData[];
     othersSkins: OthersCharData[];
     allSkins: BaseCharData[];
@@ -102,6 +104,7 @@ export interface SceneState {
     bluearchiveFilter: FilterEntry[];
     idolmasterFilter: FilterEntry[];
     goodthingsFilter: FilterEntry[];
+    hbrFilter: FilterEntry[];
     othersFilter: FilterEntry[];
     sortModeAscending: boolean;
     sortModeKey: SortModeKey;
@@ -183,6 +186,7 @@ export function createInitialState(isMobile: boolean): SceneState {
         bluearchiveFilter: [{ key: "id", value: "10" }],
         idolmasterFilter: [{ key: "id", value: "11" }],
         goodthingsFilter: [{ key: "id", value: "13" }],
+        hbrFilter: [{ key: "id", value: "14" }],
         othersFilter: [{ key: "id", value: "12" }],
         sortModeAscending: false,
         sortModeKey: "id",
