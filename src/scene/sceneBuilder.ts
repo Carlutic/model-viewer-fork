@@ -2383,8 +2383,9 @@ export class SceneBuilder implements ISceneBuilder {
         let sceneLoadedKey = "default";
         const disposeSceneContainers = (): void => {
             for (const container of sceneContainers) {
-                container.removeAllFromScene();
-                container.dispose();
+                try {
+                    container.dispose();
+                } catch { /* ignore invalid container hierarchies */ }
             }
             sceneContainers = [];
         };
