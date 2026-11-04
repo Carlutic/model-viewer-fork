@@ -2399,10 +2399,7 @@ export class SceneBuilder implements ISceneBuilder {
             sceneLoadedKey = key;
             layer.isEnabled = isDefault;
             ground.setEnabled(isDefault);
-            // Frame the character against the stage: pull the camera back a bit so
-            // the room reads as an environment instead of filling the screen.
-            camera.radius = (isDefault ? 30 : 75) * worldScale;
-            camera.setTarget(new Vector3(0, 10, 0));
+
             if (modelMeshSt) modelMeshSt.setEnabled(isDefault);
             store.set({ currentScene: key, isScenePanelOpen: false });
             try { localStorage.setItem("model-viewer.scene", key); } catch { /* ignore */ }
