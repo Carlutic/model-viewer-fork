@@ -54,5 +54,29 @@
         "camMotionFile": "res/cam_motion/AOA 猫步轻俏/camera.vmd",
         "modelMotionFile": "res/cam_motion/AOA 猫步轻俏/motion.vmd",
         "expressionMotionFile": "res/cam_motion/AOA 猫步轻俏/expression.vmd"
+    },
+    {
+        "name": "Stay Tonight",
+        "audioPlayerFile": "",
+        "modelMotionFile": "res/cam_motion/Stay Tonight/30486ed1e37cede0feae8cb196e1b2e7.vmd",
+        "camMotionFile": "res/cam_motion/Stay Tonight/a7f6234e728a940a72fff0f5871605ff.vmd"
+    },
+    {
+        "name": "大坐",
+        "audioPlayerFile": "",
+        "modelMotionFile": "res/cam_motion/DaZuo/大坐.vmd",
+        "camMotionFile": "res/cam_motion/DaZuo/大坐镜头.vmd",
+        "expressionMotionFile": "res/cam_motion/DaZuo/大坐表情.vmd"
+    },
+    {
+        "name": "小鹿乱撞",
+        "audioPlayerFile": "",
+        "modelMotionFile": "res/cam_motion/XiaoLuLuanZhuang/wangcheng_by_2561_1b529d3e1b1f9a46d2e568d62429f269.vmd"
+    },
+    {
+        "name": "这么可爱真是抱歉",
+        "audioPlayerFile": "",
+        "modelMotionFile": "res/cam_motion/KawaiiKuteGomen/这么可爱真是抱歉ver1.0_by_鲸落璃沙郊_24b42965e68c3552ae9762e17198c972.vmd",
+        "camMotionFile": "res/cam_motion/KawaiiKuteGomen/这么可爱真是抱歉_镜头_by_鲸落璃沙郊_fea905a28b2e339c95afccee070a37fd.vmd"
     }
 ]

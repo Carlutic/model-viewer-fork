@@ -1,0 +1,82 @@
+[
+    {
+        "name": "Specialist",
+        "audioPlayerFile": "res/cam_motion/Specialist (Never End ver.)/music001.mp3",
+        "camMotionFile": "res/cam_motion/Specialist (Never End ver.)/CameraMAIN2.bvmd",
+        "modelMotionFile": "res/cam_motion/Specialist (Never End ver.)/mmd_Specialist_motion.bvmd"
+    },
+    {
+        "name": "Classic",
+        "audioPlayerFile": "res/cam_motion/Classic/MMDClassic.mp3",
+        "camMotionFile": "res/cam_motion/Classic/MMDClassicCamera.bvmd",
+        "modelMotionFile": "res/cam_motion/Classic/MMDClassicMotion.bvmd"
+    },
+    {
+        "name": "Renai Circulation",
+        "audioPlayerFile": "res/cam_motion/恋サーFullモーションセット/恋愛サーキュレーション.mp3",
+        "camMotionFile": "res/cam_motion/恋サーFullモーションセット/Camera for 恋爱循环.bvmd",
+        "modelMotionFile": "res/cam_motion/恋サーFullモーションセット/恋爱循环+.bvmd"
+    },
+    {
+        "name": "热爱105C的你",
+        "audioPlayerFile": "res/cam_motion/热爱105C的你/热爱105C的你.mp3",
+        "camMotionFile": "res/cam_motion/热爱105C的你/camera.bvmd",
+        "modelMotionFile": "res/cam_motion/热爱105C的你/热爱105℃的你.bvmd"
+    },
+    {
+        "name": "MoeChakkaFire",
+        "audioPlayerFile": "res/cam_motion/モエチャッカファイア/MoeChakkaFire.mp3",
+        "camMotionFile": "res/cam_motion/モエチャッカファイア/かめら(185cm).bvmd",
+        "modelMotionFile": "res/cam_motion/モエチャッカファイア/モエチャッカファイア.bvmd"
+    },
+    {
+        "name": "Show",
+        "audioPlayerFile": "res/cam_motion/Show/Show.mp3",
+        "camMotionFile": "res/cam_motion/Show/唱_camera.bvmd",
+        "modelMotionFile": "res/cam_motion/Show/唱.bvmd"
+    },
+    {
+        "name": "I Want You Back",
+        "audioPlayerFile": "res/cam_motion/IWYB/Bgm.wav",
+        "camMotionFile": "res/cam_motion/IWYB/cam by ok mmdout.bvmd",
+        "modelMotionFile": "res/cam_motion/IWYB/MMD_Motion_IWYB.bvmd"
+    },
+    {
+        "name": "お気に召すまま",
+        "audioPlayerFile": "res/cam_motion/お気に召すまま/お気に召すまま.wav",
+        "camMotionFile": "res/cam_motion/お気に召すまま/TDA Cam.bvmd",
+        "modelMotionFile": "res/cam_motion/お気に召すまま/TDA Motion.bvmd",
+        "videoFile": "res/cam_motion/お気に召すまま/TDA PV.mp4"
+    },
+    {
+        "name": "AOA 猫步轻俏",
+        "audioPlayerFile": "res/cam_motion/AOA 猫步轻俏/audio.wav",
+        "camMotionFile": "res/cam_motion/AOA 猫步轻俏/camera.vmd",
+        "modelMotionFile": "res/cam_motion/AOA 猫步轻俏/motion.vmd",
+        "expressionMotionFile": "res/cam_motion/AOA 猫步轻俏/expression.vmd"
+    },
+    {
+        "name": "Stay Tonight",
+        "audioPlayerFile": "",
+        "modelMotionFile": "res/cam_motion/Stay Tonight/30486ed1e37cede0feae8cb196e1b2e7.vmd",
+        "camMotionFile": "res/cam_motion/Stay Tonight/a7f6234e728a940a72fff0f5871605ff.vmd"
+    },
+    {
+        "name": "大坐",
+        "audioPlayerFile": "",
+        "modelMotionFile": "res/cam_motion/DaZuo/大坐.vmd",
+        "camMotionFile": "res/cam_motion/DaZuo/大坐镜头.vmd",
+        "expressionMotionFile": "res/cam_motion/DaZuo/大坐表情.vmd"
+    },
+    {
+        "name": "小鹿乱撞",
+        "audioPlayerFile": "",
+        "modelMotionFile": "res/cam_motion/XiaoLuLuanZhuang/wangcheng_by_2561_1b529d3e1b1f9a46d2e568d62429f269.vmd"
+    },
+    {
+        "name": "这么可爱真是抱歉",
+        "audioPlayerFile": "",
+        "modelMotionFile": "res/cam_motion/KawaiiKuteGomen/这么可爱真是抱歉ver1.0_by_鲸落璃沙郊_24b42965e68c3552ae9762e17198c972.vmd",
+        "camMotionFile": "res/cam_motion/KawaiiKuteGomen/这么可爱真是抱歉_镜头_by_鲸落璃沙郊_fea905a28b2e339c95afccee070a37fd.vmd"
+    }
+]
