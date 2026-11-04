@@ -83,8 +83,11 @@ export interface SceneState {
     isCharPanelOpen: boolean;
     isTrackPanelOpen: boolean;
     isRenderPanelOpen: boolean;
+    isScenePanelOpen: boolean;
     // Active render preset. "off" disables the post-processing renderer entirely.
     renderPreset: RenderPreset;
+    scenes: import("../sceneBuilder.types").SceneItem[];
+    currentScene: string;
     isCapturing: boolean;
     // per-tab filters
     genshinFilter: FilterEntry[];
@@ -160,7 +163,10 @@ export function createInitialState(isMobile: boolean): SceneState {
         isCharPanelOpen: false,
         isTrackPanelOpen: false,
         isRenderPanelOpen: false,
+        isScenePanelOpen: false,
         renderPreset: "default",
+        scenes: [],
+        currentScene: "default",
         isCapturing: false,
         genshinFilter: [{ key: "id", value: "1000" }],
         hsrFilter: [{ key: "id", value: "2000" }],

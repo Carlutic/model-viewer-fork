@@ -194,6 +194,22 @@ export function Toolbar({ api, state }: Props): JSX.Element {
                 alt="render settings"
             />
 
+            {/* Scene switcher (stage library) */}
+            <img
+                data-scene-toggle
+                src={resUrl(state.darkMode ? "res/assets/scene_light.png" : "res/assets/scene.png")}
+                class={btnStyle}
+                style={{
+                    position: "absolute",
+                    left: `${gap}px`,
+                    top: topAt(6),
+                    background: state.isScenePanelOpen ? "rgba(119,119,119,0.5)" : "transparent",
+                    borderRadius: "10px"
+                }}
+                onClick={(): void => api.toggleScenePanel()}
+                alt="scene"
+            />
+
             {/* Support button (top right) */}
             <img
                 src={resUrl("res/assets/support.png")}

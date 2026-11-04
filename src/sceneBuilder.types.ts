@@ -42,5 +42,23 @@ export interface IdolmasterCharData extends BaseCharData {}
 
 export interface GoodThingsCharData extends BaseCharData {}
 
+export interface ScenePropItem {
+    pmx: string;
+    scale: number;
+    position: number[];
+}
+
+export interface SceneItem {
+    key: string;
+    name: string;
+    subtitle?: string;
+    directory: string;
+    pmx: string;
+    props?: ScenePropItem[];
+    scale: number;
+    position: number[];
+    image?: string;
+}
+
 export interface OthersCharData extends BaseCharData {}
 export interface ExtraCharData extends BaseCharData {}

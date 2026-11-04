@@ -71,6 +71,13 @@ export function arknightsBaseUrl(): string {
  * URL of the GoodThings library list (a JSON array of part base URLs). New parts
  * are appended to that file, so the viewer does not need a rebuild per batch.
  */
+/**
+ * Base URL of the MMD scene/stage library.
+ */
+export function scenesBaseUrl(): string {
+    return "https://carlutic.github.io/scenes/";
+}
+
 export function goodThingsLibsUrl(): string {
     return "https://carlutic.github.io/goodthings/libs.json";
 }

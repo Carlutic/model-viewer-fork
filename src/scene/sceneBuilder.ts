@@ -1,4 +1,4 @@
-import { baseUrl, resUrl, snowbreakBaseUrl, girlsFrontlineBaseUrl, girlsFrontlineLibraryBaseUrls, arknightsBaseUrl, blueArchiveBaseUrls, idolmasterBaseUrl, goodThingsLibsUrl, othersBaseUrls, urlBasePath } from "../config";// for use loading screen, we need to import following module.
+import { baseUrl, resUrl, snowbreakBaseUrl, girlsFrontlineBaseUrl, girlsFrontlineLibraryBaseUrls, arknightsBaseUrl, blueArchiveBaseUrls, idolmasterBaseUrl, goodThingsLibsUrl, scenesBaseUrl, othersBaseUrls, urlBasePath } from "../config";// for use loading screen, we need to import following module.
 import "@babylonjs/core/Loading/loadingScreen";
 // for cast shadow, we need to import following module.
 import "@babylonjs/core/Lights/Shadows/shadowGeneratorSceneComponent";
@@ -31,6 +31,7 @@ import { DirectionalLight } from "@babylonjs/core/Lights/directionalLight";
 import { HemisphericLight } from "@babylonjs/core/Lights/hemisphericLight";
 import { ShadowGenerator } from "@babylonjs/core/Lights/Shadows/shadowGenerator";
 import { LoadAssetContainerAsync } from "@babylonjs/core/Loading/sceneLoader";
+import type { AssetContainer } from "@babylonjs/core/assetContainer";
 import { ImageProcessingConfiguration } from "@babylonjs/core/Materials/imageProcessingConfiguration";
 import { StandardMaterial } from "@babylonjs/core/Materials/standardMaterial";
 import { Texture } from "@babylonjs/core/Materials/Textures/texture.js";
@@ -69,7 +70,7 @@ import type { ISceneBuilder } from "../baseRuntime";
 import { CustomLoadingScreen } from "../CustomLoadingScreen";
 import { FirebaseInstance } from "../fb";
 import { mobileMmdPlayerControl } from "../mobileMmdPlayerControl";
-import type { BaseCharData, GenshinCharData, HSRCharData, ZZZCharData, WuwaCharData, HNACharData, NTECharData, SnowbreakCharData, GirlsFrontlineCharData, ArknightsCharData, BlueArchiveCharData, IdolmasterCharData, GoodThingsCharData, OthersCharData, ExtraCharData } from "../sceneBuilder.types";
+import type { BaseCharData, GenshinCharData, HSRCharData, ZZZCharData, WuwaCharData, HNACharData, NTECharData, SnowbreakCharData, GirlsFrontlineCharData, ArknightsCharData, BlueArchiveCharData, IdolmasterCharData, GoodThingsCharData, OthersCharData, SceneItem, ExtraCharData } from "../sceneBuilder.types";
 import { normalize, getFirstDigit, findCharByName, findCharById, findAllCharsByName, createCharacterSlug } from "../sceneBuilder.utils";
 import { afterBuildSingleMaterialDefault, afterBuildSingleMaterialSt, setMaterialRenderPreset } from "../sceneBuilder.materials";
 import { getFiltersForTab } from "../ui/components/filters/filterDefs";
@@ -419,6 +420,15 @@ export class SceneBuilder implements ISceneBuilder {
 
         const worldScale = 1;
         const mmdRoot = new TransformNode("mmdRoot", scene);
+        const sceneRoot = new TransformNode("sceneRoot", scene);
+
+        // Scene/stage library (MMD stage PMX models hosted in Carlutic/scenes).
+        let sceneItems: SceneItem[] = [];
+        try {
+            sceneItems = await (await fetch(`${scenesBaseUrl()}scenes.json`, { cache: "no-cache" })).json();
+        } catch (error) {
+            console.warn("Scene library is unavailable; scene switcher will be empty:", error);
+        }
         mmdRoot.scaling.scaleInPlace(worldScale);
         mmdRoot.position.z = 0;
 
@@ -1212,6 +1222,7 @@ export class SceneBuilder implements ISceneBuilder {
         tabMode = firstTabMode;
 
         const store = new SceneStateStore(createInitialState(isMobile));
+        store.set({ scenes: sceneItems });
 
         // ---------------------------------------------------------------
         // Render presets. These only touch lights, post-processing and the
@@ -2368,6 +2379,62 @@ export class SceneBuilder implements ISceneBuilder {
         }
 
         // The API bound to state store
+        let sceneContainers: AssetContainer[] = [];
+        let sceneLoadedKey = "default";
+        const disposeSceneContainers = (): void => {
+            for (const container of sceneContainers) {
+                container.removeAllFromScene();
+                container.dispose();
+            }
+            sceneContainers = [];
+        };
+        async function applyScene(key: string): Promise<void> {
+            const isDefault = key === "default";
+            if (key === sceneLoadedKey) {
+                store.set({ currentScene: key, isScenePanelOpen: false });
+                return;
+            }
+            disposeSceneContainers();
+            sceneLoadedKey = key;
+            layer.isEnabled = isDefault;
+            ground.setEnabled(isDefault);
+            if (modelMeshSt) modelMeshSt.setEnabled(isDefault);
+            store.set({ currentScene: key, isScenePanelOpen: false });
+            try { localStorage.setItem("model-viewer.scene", key); } catch { /* ignore */ }
+            if (isDefault) return;
+            const item = sceneItems.find((it) => it.key === key);
+            if (!item) return;
+            const base = `${scenesBaseUrl()}${item.directory}/`;
+            const loadPmx = async (pmxFile: string, scale: number, position: number[]): Promise<void> => {
+                const container = await LoadAssetContainerAsync(base + pmxFile, scene, {
+                    pluginOptions: {
+                        mmdmodel: {
+                            loggingEnabled: true,
+                            materialBuilder,
+                            buildSkeleton: false,
+                            buildMorph: false,
+                        }
+                    }
+                });
+                container.addAllToScene();
+                const root = container.rootNodes[0] as MmdMesh | undefined;
+                if (root) {
+                    root.parent = sceneRoot;
+                    root.scaling.scaleInPlace(scale);
+                    root.position.set(position[0], position[1], position[2]);
+                    root.receiveShadows = true;
+                }
+                sceneContainers.push(container);
+            };
+            try {
+                await loadPmx(item.pmx, item.scale, item.position);
+                for (const prop of item.props ?? []) {
+                    await loadPmx(prop.pmx, prop.scale, prop.position);
+                }
+            } catch (error) {
+                console.warn("Scene load failed:", error);
+            }
+        }
         const api: SceneApi = {
             state: store,
             changeCharacter: async (name: string, id?: number): Promise<void> => {
@@ -2449,6 +2516,15 @@ export class SceneBuilder implements ISceneBuilder {
             },
             setRenderPreset: (preset: RenderPreset): void => {
                 applyRenderPreset(preset);
+            },
+            toggleScenePanel: (): void => {
+                store.set({ isScenePanelOpen: !store.get().isScenePanelOpen });
+            },
+            closeScenePanel: (): void => {
+                store.set({ isScenePanelOpen: false });
+            },
+            setScene: async (key: string): Promise<void> => {
+                await applyScene(key);
             },
             openSupport: (): void => {
                 window.open("https://ko-fi.com/phoshco", "_blank");
@@ -2585,6 +2661,14 @@ export class SceneBuilder implements ISceneBuilder {
                 store.set({ morphPanelOpen: false });
             }
         };
+
+        // Restore the scene picked last time (only for scenes that still exist).
+        try {
+            const savedScene = localStorage.getItem("model-viewer.scene");
+            if (savedScene && savedScene !== "default" && sceneItems.some((it) => it.key === savedScene)) {
+                void applyScene(savedScene);
+            }
+        } catch { /* ignore */ }
 
         // Wire up pointer handlers used by camera+scene
         function handlePointerDown(_evt: IPointerEvent): void { /* char panel scroll now DOM */ }

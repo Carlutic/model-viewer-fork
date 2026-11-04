@@ -32,6 +32,11 @@ export interface SceneApi {
     closeRenderPanel(): void;
     toggleRenderPanel(): void;
     setRenderPreset(preset: RenderPreset): void;
+    // Scene switcher: "default" = the built-in hoyo backdrop, otherwise a scene key
+    // from the scene library (scenes.json).
+    toggleScenePanel(): void;
+    closeScenePanel(): void;
+    setScene(key: string): Promise<void>;
     openSupport(): void;
     generateReferenceSheet(): Promise<void>;
     setSearchQuery(q: string): void;
