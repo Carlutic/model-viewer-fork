@@ -72,7 +72,7 @@ import { FirebaseInstance } from "../fb";
 import { mobileMmdPlayerControl } from "../mobileMmdPlayerControl";
 import type { BaseCharData, GenshinCharData, HSRCharData, ZZZCharData, WuwaCharData, HNACharData, NTECharData, SnowbreakCharData, GirlsFrontlineCharData, ArknightsCharData, BlueArchiveCharData, IdolmasterCharData, GoodThingsCharData, HbrCharData, OthersCharData, SceneItem, ExtraCharData } from "../sceneBuilder.types";
 import { normalize, getFirstDigit, findCharByName, findCharById, findAllCharsByName, createCharacterSlug } from "../sceneBuilder.utils";
-import { afterBuildSingleMaterialDefault, afterBuildSingleMaterialSt, setMaterialRenderPreset } from "../sceneBuilder.materials";
+import { afterBuildSingleMaterialDefault, afterBuildSingleMaterialSt, setMaterialRenderPreset, setActiveNormalMaps } from "../sceneBuilder.materials";
 import { getFiltersForTab } from "../ui/components/filters/filterDefs";
 import { generateReferenceSheet } from "./referenceSheet";
 import type { SceneApi } from "./sceneApi";
@@ -695,7 +695,26 @@ export class SceneBuilder implements ISceneBuilder {
             }
         }
 
+        const loadNormalMapsFor = async (base: string, directory: string): Promise<void> => {
+            if (new URLSearchParams(window.location.search).has("nonormal")) {
+                setActiveNormalMaps("", null);
+                return;
+            }
+            const dir = `${base}${directory}/`;
+            try {
+                const res = await fetch(`${dir}material_maps.json`, { cache: "no-cache" });
+                if (!res.ok) {
+                    setActiveNormalMaps("", null);
+                    return;
+                }
+                setActiveNormalMaps(dir, await res.json());
+            } catch {
+                setActiveNormalMaps("", null);
+            }
+        };
+
         if (chosenChar && chosenChar.directory && chosenChar.pmx) {
+            await loadNormalMapsFor(chosenChar.base ?? baseUrl, chosenChar.directory);
             const initialMmdModelOptions = {
                 loggingEnabled: true,
                 materialBuilder: materialBuilder,
@@ -1796,6 +1815,7 @@ export class SceneBuilder implements ISceneBuilder {
                 mmdRuntime = createMmdRuntime(physicsModeOn);
             }
             if (chosenCharLocal && chosenCharLocal.directory && chosenCharLocal.pmx) {
+                await loadNormalMapsFor(chosenCharLocal.base ?? baseUrl, chosenCharLocal.directory);
                 const mmdModelOptions = {
                     loggingEnabled: true,
                     materialBuilder: materialBuilder,

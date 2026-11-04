@@ -1,6 +1,7 @@
 import type { MmdStandardMaterial } from "babylon-mmd/esm/Loader/mmdStandardMaterial";
 import { Material } from "@babylonjs/core";
 import { Color3, Color4 } from "@babylonjs/core/Maths/math.color";
+import { Texture } from "@babylonjs/core/Materials/Textures/texture";
 
 /**
  * Some MMD authors tint the outline (edge) color of a material — e.g. the Girls'
@@ -88,6 +89,34 @@ function applyRenderPresetToMaterial(material: MmdStandardMaterial): void {
     }
 }
 
+/**
+ * Optional per-model normal maps. The viewer fetches `material_maps.json` next to
+ * the model (mapping a diffuse texture file name to a normal-map path) and the
+ * material builder then attaches it as a bump texture. Purely additive: models
+ * without the manifest render exactly as before.
+ */
+let activeNormalMapsBase = "";
+let activeNormalMaps: Record<string, string> = {};
+
+export function setActiveNormalMaps(base: string, maps: Record<string, string> | null): void {
+    activeNormalMapsBase = base;
+    activeNormalMaps = maps ?? {};
+}
+
+function applyNormalMap(material: MmdStandardMaterial): void {
+    const diffuse = material.diffuseTexture as Texture | null;
+    if (!diffuse || !diffuse.name) return;
+    const name = decodeURIComponent((diffuse.name.split("?")[0].split("/").pop() ?? ""));
+    const normalPath = activeNormalMaps[name];
+    if (!normalPath) return;
+    try {
+        const tex = new Texture(activeNormalMapsBase + normalPath, material.getScene(), false);
+        tex.name = "normal:" + normalPath;
+        material.bumpTexture = tex;
+        material.invertNormalMapY = true;
+    } catch { /* ignore */ }
+}
+
 // Keep exact logic from original callbacks — exported so SceneBuilder can assign them.
 export const afterBuildSingleMaterialDefault = (material: MmdStandardMaterial): void => {
     material.forceDepthWrite = true;
@@ -104,6 +133,7 @@ export const afterBuildSingleMaterialDefault = (material: MmdStandardMaterial): 
     neutralizeGreenHairOutline(material);
     hideEffectMaterial(material);
     hideFaceShapeMaterial(material);
+    applyNormalMap(material);
     applyRenderPresetToMaterial(material);
 };
 
