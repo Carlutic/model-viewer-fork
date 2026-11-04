@@ -1,6 +1,6 @@
 import type { JSX } from "preact";
 import { useEffect, useRef } from "preact/hooks";
-import motionConfig from "../../../res/cam_motion/motion.json";
+import { motionTracks } from "../../scene/motionTracks";
 import type { SceneApi } from "../../scene/sceneApi";
 
 interface Props {
@@ -41,7 +41,7 @@ export function TrackPanel({ api, open }: Props): JSX.Element | null {
                    sm:w-[250px] sm:max-h-[280px] sm:text-base"
             style={{ left: "60px", top: "110px" }}
         >
-            {motionConfig.map((track): JSX.Element => (
+            {motionTracks.map((track): JSX.Element => (
                 <button
                     key={track.name}
                     class="flex w-full items-center justify-between gap-2 px-3 py-2 text-left hover:bg-[rgb(64,68,70)]"

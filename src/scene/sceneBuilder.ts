@@ -1,4 +1,4 @@
-import { baseUrl, resUrl, snowbreakBaseUrl, girlsFrontlineBaseUrl, girlsFrontlineLibraryBaseUrls, arknightsBaseUrl, blueArchiveBaseUrls, idolmasterBaseUrl, goodThingsLibsUrl, hbrBaseUrl, scenesBaseUrl, othersBaseUrls, urlBasePath } from "../config";// for use loading screen, we need to import following module.
+import { baseUrl, resUrl, snowbreakBaseUrl, girlsFrontlineBaseUrl, girlsFrontlineLibraryBaseUrls, arknightsBaseUrl, blueArchiveBaseUrls, idolmasterBaseUrl, goodThingsLibsUrl, hbrBaseUrl, motionLibraryBaseUrls, scenesBaseUrl, othersBaseUrls, urlBasePath } from "../config";// for use loading screen, we need to import following module.
 import "@babylonjs/core/Loading/loadingScreen";
 // for cast shadow, we need to import following module.
 import "@babylonjs/core/Lights/Shadows/shadowGeneratorSceneComponent";
@@ -65,7 +65,7 @@ import { GetMmdWasmInstance } from "babylon-mmd/esm/Runtime/Optimized/mmdWasmIns
 import miniSearch from "minisearch";
 
 import extraCharDatas from "../../res/assets/extras.json";
-import motionConfig from "../../res/cam_motion/motion.json";
+import { motionTracks, loadRemoteMotionTracks } from "./motionTracks";
 import type { ISceneBuilder } from "../baseRuntime";
 import { CustomLoadingScreen } from "../CustomLoadingScreen";
 import { FirebaseInstance } from "../fb";
@@ -555,17 +555,18 @@ export class SceneBuilder implements ISceneBuilder {
         // The toolbar physics button still flips it off for performance.
         let physicsModeOn = true;
 
-        let motionName = motionConfig[Math.floor(Math.random() * motionConfig.length)].name;
+        await loadRemoteMotionTracks(motionLibraryBaseUrls());
+        let motionName = motionTracks[Math.floor(Math.random() * motionTracks.length)].name;
         // Tracks may omit audio / camera (e.g. motion-only demo entries).
-        let audioPlayerFile: string = motionConfig.find((item) => item.name === motionName)?.audioPlayerFile ?? "";
-        let camMotionFile: string | undefined = motionConfig.find((item) => item.name === motionName)?.camMotionFile;
-        let modelMotionFile: string = motionConfig.find((item) => item.name === motionName)?.modelMotionFile ?? "";
+        let audioPlayerFile: string = motionTracks.find((item) => item.name === motionName)?.audioPlayerFile ?? "";
+        let camMotionFile: string | undefined = motionTracks.find((item) => item.name === motionName)?.camMotionFile;
+        let modelMotionFile: string = motionTracks.find((item) => item.name === motionName)?.modelMotionFile ?? "";
         // Optional per-track full-screen video background (e.g. an MMD PV). Only some
         // tracks declare it, so it is read defensively and may be undefined.
-        let videoFile: string | undefined = (motionConfig.find((item) => item.name === motionName) as { videoFile?: string }).videoFile;
+        let videoFile: string | undefined = motionTracks.find((item) => item.name === motionName)?.videoFile;
         // Optional second VMD holding only morph (expression) tracks; merged into the
         // model motion by the VMD loader when present.
-        let expressionMotionFile: string | undefined = (motionConfig.find((item) => item.name === motionName) as { expressionMotionFile?: string }).expressionMotionFile;
+        let expressionMotionFile: string | undefined = motionTracks.find((item) => item.name === motionName)?.expressionMotionFile;
 
         let audioPlayer = new StreamAudioPlayer(scene);
         // Keep the audio at its original pitch when the speed slider slows
@@ -2492,7 +2493,7 @@ export class SceneBuilder implements ISceneBuilder {
                 removeSecondCharacter();
             },
             changeMotion: async (trackName: string): Promise<void> => {
-                const track = motionConfig.find(t => t.name === trackName);
+                const track = motionTracks.find(t => t.name === trackName);
                 if (!track) return;
                 motionName = track.name;
                 audioPlayerFile = track.audioPlayerFile ?? "";

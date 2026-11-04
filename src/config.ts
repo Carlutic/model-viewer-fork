@@ -74,6 +74,22 @@ export function arknightsBaseUrl(): string {
 /**
  * Base URL of the MMD scene/stage library.
  */
+/**
+ * Motion library repositories (VMD dance motions), merged into the track list
+ * at runtime. Each repository holds a tracks.json with relative file paths.
+ */
+export function motionLibraryBaseUrls(): string[] {
+    return [
+        "https://carlutic.github.io/motions/",
+        "https://carlutic.github.io/motions2/",
+        "https://carlutic.github.io/motions3/",
+        "https://carlutic.github.io/motions4/",
+        "https://carlutic.github.io/motions5/",
+        "https://carlutic.github.io/motions6/",
+        "https://carlutic.github.io/motions7/",
+    ];
+}
+
 export function hbrBaseUrl(): string {
     return "https://carlutic.github.io/hbr/";
 }
