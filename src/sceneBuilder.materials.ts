@@ -34,6 +34,21 @@ function neutralizeGreenHairOutline(material: MmdStandardMaterial): void {
  */
 const EFFECT_MATERIAL = /^(emotions?\d*(\([^)]*\))?|emotion\d+(\.\d+)?|表情\d*|effects?\d*|エフェクト\d*)$/i;
 
+/**
+ * HBR (Heaven Burns Red) rips ship opaque "shape face" meshes (cheek/blush/sweat
+ * masks) that are only meant to be revealed by expression morphs. Converted to
+ * PMX they sit in front of the eye quads and paint the face white, so hide them.
+ */
+const FACE_SHAPE_MATERIAL = /face\s*shape|shape_?face/i;
+
+function hideFaceShapeMaterial(material: MmdStandardMaterial): void {
+    const name = material.name ?? "";
+    if (!FACE_SHAPE_MATERIAL.test(name)) return;
+    material.alpha = 0;
+    material.transparencyMode = Material.MATERIAL_ALPHABLEND;
+    material.disableDepthWrite = true;
+}
+
 function hideEffectMaterial(material: MmdStandardMaterial): void {
     const name = (material.name ?? "").trim();
     if (!EFFECT_MATERIAL.test(name)) return;
@@ -88,6 +103,7 @@ export const afterBuildSingleMaterialDefault = (material: MmdStandardMaterial): 
     }
     neutralizeGreenHairOutline(material);
     hideEffectMaterial(material);
+    hideFaceShapeMaterial(material);
     applyRenderPresetToMaterial(material);
 };
 
