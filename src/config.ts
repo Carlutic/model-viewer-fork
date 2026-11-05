@@ -135,5 +135,6 @@ export function girlsFrontlineLibraryBaseUrls(): string[] {
         "https://carlutic.github.io/girl_frontline4/",
         "https://carlutic.github.io/girl_frontline5/",
         "https://carlutic.github.io/girl_frontline6/",
+        "https://carlutic.github.io/girl_frontline7/",
     ];
 }
