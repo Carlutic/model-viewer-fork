@@ -65,7 +65,9 @@ import { GetMmdWasmInstance } from "babylon-mmd/esm/Runtime/Optimized/mmdWasmIns
 import miniSearch from "minisearch";
 
 import extraCharDatas from "../../res/assets/extras.json";
-import { motionTracks, loadRemoteMotionTracks } from "./motionTracks";
+import { motionTracks, loadRemoteMotionTracks } from "./motionTracks";
+import { PBRMaterialBuilder } from "babylon-mmd/esm/Loader/pbrMaterialBuilder";
+import { applyRealisticMaterials, disableRealisticMode, enableRealisticMode, setRealisticNormalMaps } from "./realisticMode";
 import type { ISceneBuilder } from "../baseRuntime";
 import { CustomLoadingScreen } from "../CustomLoadingScreen";
 import { FirebaseInstance } from "../fb";
@@ -418,12 +420,15 @@ export class SceneBuilder implements ISceneBuilder {
         let initialRenderPreset: RenderPreset = "default";
         try {
             const storedPreset = localStorage.getItem("model-viewer.renderPreset");
-            if (storedPreset === "default" || storedPreset === "endfield" || storedPreset === "off") initialRenderPreset = storedPreset;
+            if (storedPreset === "default" || storedPreset === "endfield" || storedPreset === "realistic" || storedPreset === "off") initialRenderPreset = storedPreset;
         } catch { /* ignore */ }
         setMaterialRenderPreset(initialRenderPreset);
 
         RegisterDxBmpTextureLoader();
-        const materialBuilder = new MmdStandardMaterialBuilder();
+        const materialBuilder = new MmdStandardMaterialBuilder();
+        const pbrMaterialBuilder = new PBRMaterialBuilder();
+        let realisticMode = initialRenderPreset === "realistic";
+        const currentMaterialBuilder = (): MmdStandardMaterialBuilder | PBRMaterialBuilder => realisticMode ? pbrMaterialBuilder : materialBuilder;
         materialBuilder.afterBuildSingleMaterial = afterBuildSingleMaterialDefault;
 
         const materialBuilderSt = new MmdStandardMaterialBuilder();
@@ -707,7 +712,9 @@ export class SceneBuilder implements ISceneBuilder {
                     setActiveNormalMaps("", null);
                     return;
                 }
-                setActiveNormalMaps(dir, await res.json());
+                const maps = await res.json();
+                setActiveNormalMaps(dir, maps);
+                setRealisticNormalMaps({ base: dir, maps });
             } catch {
                 setActiveNormalMaps("", null);
             }
@@ -717,7 +724,7 @@ export class SceneBuilder implements ISceneBuilder {
             await loadNormalMapsFor(chosenChar.base ?? baseUrl, chosenChar.directory);
             const initialMmdModelOptions = {
                 loggingEnabled: true,
-                materialBuilder: materialBuilder,
+                materialBuilder: currentMaterialBuilder(),
                 ...(isSpecialModelChar(chosenChar) ? { buildSkeleton: false, buildMorph: false } : {})
             };
             promises.push(LoadAssetContainerAsync(
@@ -760,6 +767,11 @@ export class SceneBuilder implements ISceneBuilder {
 
         scene.onAfterRenderObservable.addOnce(() => engine.hideLoadingUI());
         scene.activeCameras = [stillCamera, guiCam];
+        if (realisticMode) {
+            enableRealisticMode(scene, stillCamera);
+            const initialContainer = loadResults[0];
+            if (initialContainer) applyRealisticMaterials(initialContainer);
+        }
 
         let theDiff = 1.85;
         let theHeight = 1.85;
@@ -1282,6 +1294,17 @@ export class SceneBuilder implements ISceneBuilder {
             // Character-focused preset: adjust the MMD materials on the next model
             // build and enable/disable the cool rim light. No screen-wide overlay.
             setMaterialRenderPreset(preset);
+            const wasRealistic = realisticMode;
+            realisticMode = preset === "realistic";
+            if (realisticMode) {
+                enableRealisticMode(scene, stillCamera);
+            } else {
+                disableRealisticMode(scene);
+            }
+            if (wasRealistic !== realisticMode && chosenChar) {
+                // materials are built at load time, so rebuild the character
+                void changeCharacter(chosenChar.name, chosenChar.id, true);
+            }
             rimLight.intensity = preset === "endfield" ? 0.75 : 0;
             try {
                 localStorage.setItem("model-viewer.renderPreset", preset);
@@ -1818,7 +1841,7 @@ export class SceneBuilder implements ISceneBuilder {
                 await loadNormalMapsFor(chosenCharLocal.base ?? baseUrl, chosenCharLocal.directory);
                 const mmdModelOptions = {
                     loggingEnabled: true,
-                    materialBuilder: materialBuilder,
+                    materialBuilder: currentMaterialBuilder(),
                     ...(isSpecialModelChar(chosenCharLocal) ? { buildSkeleton: false, buildMorph: false } : {})
                 };
 
@@ -1881,6 +1904,11 @@ export class SceneBuilder implements ISceneBuilder {
                 engine.hideLoadingUI();
             });
 
+            if (realisticMode) {
+                const realisticContainer = loadResults[0];
+                if (realisticContainer) applyRealisticMaterials(realisticContainer);
+                enableRealisticMode(scene, stillCamera);
+            }
             if (charScreenMode) {
                 const characterModelPromiseResSt = loadResults[1];
                 characterModelPromiseResSt.addAllToScene();

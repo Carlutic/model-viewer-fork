@@ -63,7 +63,7 @@ function hideEffectMaterial(material: MmdStandardMaterial): void {
 // The viewer freezes materials for performance, so a preset change rebuilds the
 // current model's materials through these hooks.
 // ---------------------------------------------------------------------------
-export type MaterialRenderPreset = "default" | "endfield" | "off";
+export type MaterialRenderPreset = "default" | "endfield" | "realistic" | "off";
 let materialRenderPreset: MaterialRenderPreset = "default";
 
 export const setMaterialRenderPreset = (preset: MaterialRenderPreset): void => {

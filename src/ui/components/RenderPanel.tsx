@@ -11,6 +11,7 @@ interface Props {
 const PRESETS: { key: RenderPreset; label: string; desc: string }[] = [
     { key: "default", label: "默认渲染", desc: "模型原始材质与描边" },
     { key: "endfield", label: "终末地风格", desc: "加粗深色描边 + 冷色轮廓光 + 材质微调（只作用于角色）" },
+    { key: "realistic", label: "写实 PBR", desc: "PBR 材质 + 环境光 + 泛光/景深/ACES（法线贴图生效）" },
     { key: "off", label: "关闭渲染", desc: "去掉描边和风格化高光，平面渲染" }
 ];
 
