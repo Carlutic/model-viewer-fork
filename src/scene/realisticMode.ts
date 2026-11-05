@@ -69,36 +69,43 @@ function createStudioEnvironment(scene: Scene): RawCubeTexture {
 export function enableRealisticMode(scene: Scene, camera: Camera): void {
     if (!envTexture) envTexture = createStudioEnvironment(scene);
     scene.environmentTexture = envTexture;
-    scene.environmentIntensity = 0.55;
+    scene.environmentIntensity = 0.35;
     // Strong key light: PBR normal maps only read as detail when a directional
     // light dominates the soft IBL.
     const key = scene.getLightByName("DirectionalLight");
-    if (key) key.intensity = 1.55;
+    if (key) key.intensity = 1.85;
     const hemi = scene.getLightByName("HemisphericLight");
-    if (hemi) hemi.intensity = 0.22;
+    if (hemi) hemi.intensity = 0.16;
     const rim = scene.getLightByName("RimLight");
-    if (rim) rim.intensity = 0.35;
+    if (rim) rim.intensity = 0.8;
     pipelineCamera = camera;
     if (!pipeline) {
         pipeline = new DefaultRenderingPipeline("realisticPipeline", true, scene, [camera]);
         pipeline.fxaaEnabled = true;
         pipeline.bloomEnabled = true;
-        pipeline.bloomThreshold = 0.92;
-        pipeline.bloomWeight = 0.18;
+        pipeline.bloomThreshold = 0.88;
+        pipeline.bloomWeight = 0.22;
         pipeline.bloomKernel = 48;
         pipeline.imageProcessing.toneMappingEnabled = true;
         pipeline.imageProcessing.toneMappingType = (scene.getEngine() as unknown as { ACES?: number }).ACES ?? 1;
-        pipeline.imageProcessing.exposure = 1.0;
-        pipeline.imageProcessing.contrast = 1.16;
+        pipeline.imageProcessing.exposure = 1.12;
+        pipeline.imageProcessing.contrast = 1.10;
         pipeline.imageProcessing.colorCurvesEnabled = true;
         const curves = pipeline.imageProcessing.colorCurves!;
-        curves.globalSaturation = 18;
-        curves.shadowsSaturation = 8;
-        curves.highlightsSaturation = 6;
+        curves.globalSaturation = 28;
+        curves.shadowsSaturation = 14;
+        curves.highlightsSaturation = 10;
         curves.shadowsHue = 200;
         curves.highlightsHue = 35;
         pipeline.imageProcessing.vignetteEnabled = true;
-        pipeline.imageProcessing.vignetteWeight = 0.45;
+        pipeline.imageProcessing.vignetteWeight = 0.35;
+        // Depth of field: keeps the character crisp and melts the background away,
+        // which is what makes the reference renders look "photographic".
+        pipeline.depthOfFieldEnabled = true;
+        pipeline.depthOfFieldBlurLevel = 1;
+        pipeline.depthOfField.fStop = 2.0;
+        pipeline.depthOfField.focalLength = 50;
+        pipeline.depthOfField.focusDistance = ((camera as unknown as { radius?: number }).radius ?? 30) * 1000;
         pipeline.imageProcessing.vignetteColor = new Color4(0, 0, 0, 0);
         pipeline.chromaticAberrationEnabled = true;
         pipeline.chromaticAberration.aberrationAmount = 6;
