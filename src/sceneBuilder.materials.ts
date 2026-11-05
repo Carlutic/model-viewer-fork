@@ -2,6 +2,7 @@ import type { MmdStandardMaterial } from "babylon-mmd/esm/Loader/mmdStandardMate
 import { Material } from "@babylonjs/core";
 import { Color3, Color4 } from "@babylonjs/core/Maths/math.color";
 import { Texture } from "@babylonjs/core/Materials/Textures/texture";
+import { RawTexture } from "@babylonjs/core/Materials/Textures/rawTexture";
 
 /**
  * Some MMD authors tint the outline (edge) color of a material — e.g. the Girls'
@@ -70,6 +71,40 @@ export const setMaterialRenderPreset = (preset: MaterialRenderPreset): void => {
     materialRenderPreset = preset;
 };
 
+/**
+ * Soft two-tone MMD toon ramp: cool saturated shadows fading smoothly into warm
+ * highlights. Replacing the model's hard 1-bit toon texture with this is what
+ * gives the anime preset its "painted" shading instead of hard bands.
+ */
+let animeToonRamp: Texture | null = null;
+
+function getAnimeToonRamp(scene: import("@babylonjs/core/scene").Scene): Texture {
+    if (animeToonRamp) return animeToonRamp;
+    const width = 256;
+    const data = new Uint8Array(width * 4);
+    for (let i = 0; i < width; i++) {
+        const t = i / (width - 1);
+        // smoothstep so the shadow band has a soft painted edge
+        const s = t * t * (3 - 2 * t);
+        const warm = Math.min(1, Math.max(0, (t - 0.45) / 0.55));
+        const r = Math.round((0.42 + (1.0 - 0.42) * s) * 255);
+        const g = Math.round((0.50 + (0.96 - 0.50) * s) * 255);
+        const b = Math.round((0.74 + (0.90 - 0.74) * s) * 255);
+        data[i * 4] = Math.min(255, r + Math.round(40 * warm));
+        data[i * 4 + 1] = Math.min(255, g + Math.round(30 * warm));
+        data[i * 4 + 2] = Math.min(255, b - Math.round(20 * warm));
+        data[i * 4 + 3] = 255;
+    }
+    const tex = new RawTexture(data, width, 1, 5, scene, false, false, Texture.NEAREST_SAMPLINGMODE);
+    tex.name = "animeToonRamp";
+    tex.wrapU = Texture.CLAMP_ADDRESSMODE;
+    animeToonRamp = tex;
+    return tex;
+}
+
+const SKIN_MAT = /(皮肤|skin|body|脸|face)/i;
+const EYE_MAT = /(眼睛|eye|瞳|eyewhite|眼白)/i;
+
 /** Inverse-hull outline thickness: MMD "edge size" scaled up for a cel look. */
 function applyRenderPresetToMaterial(material: MmdStandardMaterial): void {
     if (materialRenderPreset === "endfield") {
@@ -83,13 +118,27 @@ function applyRenderPresetToMaterial(material: MmdStandardMaterial): void {
         material.specularColor = new Color3(0.12, 0.13, 0.16);
         material.specularPower = 48;
     } else if (materialRenderPreset === "anime") {
-        // Anime-cinematic: keep the toon shading, but boost saturation and give
-        // the cloth/leather a slightly stronger stylised specular.
+        // Anime-cinematic: keep the toon shading, but replace the hard ramp with a
+        // soft painted one and give skin/eyes/cloth stylised responses.
         const w = material.outlineWidth;
-        if (w > 0) material.outlineWidth = w * 1.15;
-        material.textureMultiplicativeColor = new Color4(1.06, 1.0, 0.95, 1);
-        material.specularColor = new Color3(0.30, 0.27, 0.24);
-        material.specularPower = 64;
+        if (w > 0) material.outlineWidth = w * 1.2;
+        material.textureMultiplicativeColor = new Color4(1.10, 1.03, 0.96, 1);
+        material.specularColor = new Color3(0.34, 0.30, 0.27);
+        material.specularPower = 80;
+        try {
+            material.toonTexture = getAnimeToonRamp(material.getScene());
+        } catch { /* ignore */ }
+        const mname = material.name ?? "";
+        if (SKIN_MAT.test(mname)) {
+            // fake subsurface: lift the shadow side with a warm scatter tint
+            material.textureAdditiveColor = new Color4(0.10, 0.045, 0.025, 0);
+            material.specularColor = new Color3(0.12, 0.10, 0.09);
+            material.specularPower = 32;
+        } else if (EYE_MAT.test(mname)) {
+            material.textureAdditiveColor = new Color4(0.03, 0.03, 0.035, 0);
+            material.specularColor = new Color3(0.7, 0.7, 0.72);
+            material.specularPower = 160;
+        }
     } else if (materialRenderPreset === "off") {
         // Flat render: no outline hull, no stylised speculars.
         material.outlineWidth = 0;

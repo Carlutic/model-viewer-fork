@@ -1,4 +1,6 @@
 import { Color3 } from "@babylonjs/core/Maths/math.color";
+import { Vector3 } from "@babylonjs/core/Maths/math.vector";
+import { DirectionalLight } from "@babylonjs/core/Lights/directionalLight";
 import { DefaultRenderingPipeline } from "@babylonjs/core/PostProcesses/RenderPipeline/Pipelines/defaultRenderingPipeline";
 import type { Camera } from "@babylonjs/core/Cameras/camera";
 import type { HemisphericLight } from "@babylonjs/core/Lights/hemisphericLight";
@@ -14,6 +16,7 @@ import type { Scene } from "@babylonjs/core/scene";
  */
 let pipeline: DefaultRenderingPipeline | null = null;
 let pipelineCamera: Camera | null = null;
+let fillLight: DirectionalLight | null = null;
 
 export function enableAnimeMode(scene: Scene, camera: Camera): void {
     pipelineCamera = camera;
@@ -32,6 +35,11 @@ export function enableAnimeMode(scene: Scene, camera: Camera): void {
         rim.intensity = 1.0;
         rim.diffuse = new Color3(0.55, 0.72, 1.0);
     }
+    if (!fillLight) {
+        fillLight = new DirectionalLight("AnimeFill", new Vector3(-0.5, -0.35, -1), scene);
+        fillLight.diffuse = new Color3(1.0, 0.87, 0.74);
+    }
+    fillLight.intensity = 0.45;
     if (!pipeline) {
         pipeline = new DefaultRenderingPipeline("animePipeline", true, scene, [camera]);
         pipeline.fxaaEnabled = true;
@@ -82,4 +90,5 @@ export function disableAnimeMode(scene: Scene): void {
     }
     const rim = scene.getLightByName("RimLight");
     if (rim) rim.intensity = 0;
+    if (fillLight) fillLight.intensity = 0;
 }
