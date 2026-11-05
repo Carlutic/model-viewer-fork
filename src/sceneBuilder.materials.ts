@@ -64,7 +64,7 @@ function hideEffectMaterial(material: MmdStandardMaterial): void {
 // The viewer freezes materials for performance, so a preset change rebuilds the
 // current model's materials through these hooks.
 // ---------------------------------------------------------------------------
-export type MaterialRenderPreset = "default" | "endfield" | "realistic" | "anime" | "off";
+export type MaterialRenderPreset = "default" | "enhanced" | "endfield" | "realistic" | "anime" | "off";
 let materialRenderPreset: MaterialRenderPreset = "default";
 
 export const setMaterialRenderPreset = (preset: MaterialRenderPreset): void => {
@@ -176,6 +176,7 @@ function applyNormalMap(material: MmdStandardMaterial): void {
     try {
         const tex = new Texture(activeNormalMapsBase + normalPath, material.getScene(), false);
         tex.name = "normal:" + normalPath;
+        tex.level = 1.8;
         material.bumpTexture = tex;
         material.invertNormalMapY = true;
     } catch { /* ignore */ }
