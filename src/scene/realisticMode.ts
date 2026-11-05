@@ -8,9 +8,14 @@ import type { AssetContainer } from "@babylonjs/core/assetContainer";
 import type { Mesh } from "@babylonjs/core/Meshes/mesh";
 import type { Scene } from "@babylonjs/core/scene";
 
+export interface MaterialMapEntry {
+    normal?: string;
+    rmo?: string;
+}
+
 export interface NormalMapSet {
     base: string;
-    maps: Record<string, string>;
+    maps: Record<string, string | MaterialMapEntry>;
 }
 
 let envTexture: RawCubeTexture | null = null;
@@ -64,21 +69,28 @@ function createStudioEnvironment(scene: Scene): RawCubeTexture {
 export function enableRealisticMode(scene: Scene, camera: Camera): void {
     if (!envTexture) envTexture = createStudioEnvironment(scene);
     scene.environmentTexture = envTexture;
-    scene.environmentIntensity = 0.9;
+    scene.environmentIntensity = 0.55;
     pipelineCamera = camera;
     if (!pipeline) {
         pipeline = new DefaultRenderingPipeline("realisticPipeline", true, scene, [camera]);
         pipeline.fxaaEnabled = true;
         pipeline.bloomEnabled = true;
-        pipeline.bloomThreshold = 0.82;
-        pipeline.bloomWeight = 0.28;
+        pipeline.bloomThreshold = 0.92;
+        pipeline.bloomWeight = 0.18;
         pipeline.bloomKernel = 48;
         pipeline.imageProcessing.toneMappingEnabled = true;
         pipeline.imageProcessing.toneMappingType = (scene.getEngine() as unknown as { ACES?: number }).ACES ?? 1;
-        pipeline.imageProcessing.exposure = 1.15;
-        pipeline.imageProcessing.contrast = 1.06;
+        pipeline.imageProcessing.exposure = 1.0;
+        pipeline.imageProcessing.contrast = 1.16;
+        pipeline.imageProcessing.colorCurvesEnabled = true;
+        const curves = pipeline.imageProcessing.colorCurves!;
+        curves.globalSaturation = 18;
+        curves.shadowsSaturation = 8;
+        curves.highlightsSaturation = 6;
+        curves.shadowsHue = 200;
+        curves.highlightsHue = 35;
         pipeline.imageProcessing.vignetteEnabled = true;
-        pipeline.imageProcessing.vignetteWeight = 0.6;
+        pipeline.imageProcessing.vignetteWeight = 0.45;
         pipeline.imageProcessing.vignetteColor = new Color4(0, 0, 0, 0);
         pipeline.chromaticAberrationEnabled = true;
         pipeline.chromaticAberration.aberrationAmount = 6;
@@ -109,6 +121,11 @@ const CLOTH = /(衣服|cloth|衣|裙|skirt|jacket|sleeve|silkstock|丝袜|袜|so
 const METAL = /(金属|金|银|metal|gold|silver|扣|buckle|watch|手表|拉链|zip|button|ボタン|belt|腰带)/i;
 const EYE = /(眼睛|eye|瞳|white|眼白|眉|brow)/i;
 
+function resolveEntry(entry: string | MaterialMapEntry | undefined): MaterialMapEntry | null {
+    if (!entry) return null;
+    return typeof entry === "string" ? { normal: entry } : entry;
+}
+
 function setupMaterial(material: PBRMaterial): void {
     const name = material.name ?? "";
     let roughness = 0.85;
@@ -125,12 +142,23 @@ function setupMaterial(material: PBRMaterial): void {
     const albedo = material.albedoTexture;
     if (albedo && albedo.name && normalMapSet) {
         const fileName = decodeURIComponent((albedo.name.split("?")[0].split("/").pop() ?? ""));
-        const normalPath = normalMapSet.maps[fileName];
-        if (normalPath) {
-            const normal = new Texture(normalMapSet.base + normalPath, material.getScene(), false);
-            normal.name = "normal:" + normalPath;
+        const entry = resolveEntry(normalMapSet.maps[fileName]);
+        if (entry?.normal) {
+            const normal = new Texture(normalMapSet.base + entry.normal, material.getScene(), false);
+            normal.name = "normal:" + entry.normal;
             material.bumpTexture = normal;
             material.invertNormalMapY = true;
+        }
+        if (entry?.rmo) {
+            // glTF/Babylon ORM layout: R = ambient occlusion, G = roughness, B = metallic
+            const orm = new Texture(normalMapSet.base + entry.rmo, material.getScene(), false);
+            orm.name = "orm:" + entry.rmo;
+            material.metallicTexture = orm;
+            material.useAmbientOcclusionFromMetallicTextureRed = true;
+            material.useRoughnessFromMetallicTextureGreen = true;
+            material.useMetallnessFromMetallicTextureBlue = true;
+            material.metallic = 1.0;
+            material.roughness = 1.0;
         }
     }
 }
