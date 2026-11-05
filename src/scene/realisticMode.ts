@@ -164,9 +164,11 @@ function setupMaterial(material: PBRMaterial): void {
 }
 
 /** Convert loaded MMD meshes' PBR materials to a physically-plausible setup. */
-export function applyRealisticMaterials(container: AssetContainer): void {
+export function applyRealisticMaterials(container: unknown): void {
+    const meshes = (container as AssetContainer | null | undefined)?.meshes;
+    if (!Array.isArray(meshes)) return;
     const seen = new Set<PBRMaterial>();
-    for (const mesh of container.meshes as Mesh[]) {
+    for (const mesh of meshes as Mesh[]) {
         const material = mesh.material;
         if (material instanceof PBRMaterial && !seen.has(material)) {
             seen.add(material);

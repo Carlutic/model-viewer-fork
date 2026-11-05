@@ -769,8 +769,9 @@ export class SceneBuilder implements ISceneBuilder {
         scene.activeCameras = [stillCamera, guiCam];
         if (realisticMode) {
             enableRealisticMode(scene, stillCamera);
-            const initialContainer = loadResults[0];
-            if (initialContainer) applyRealisticMaterials(initialContainer);
+            // loadResults order depends on the path (motion/physics placeholders first),
+            // so convert whichever entries are real asset containers.
+            for (const result of loadResults) applyRealisticMaterials(result);
         }
 
         let theDiff = 1.85;
@@ -1905,8 +1906,7 @@ export class SceneBuilder implements ISceneBuilder {
             });
 
             if (realisticMode) {
-                const realisticContainer = loadResults[0];
-                if (realisticContainer) applyRealisticMaterials(realisticContainer);
+                for (const result of loadResults) applyRealisticMaterials(result);
                 enableRealisticMode(scene, stillCamera);
             }
             if (charScreenMode) {
