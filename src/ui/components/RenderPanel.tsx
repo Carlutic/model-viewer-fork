@@ -11,6 +11,7 @@ interface Props {
 const PRESETS: { key: RenderPreset; label: string; desc: string }[] = [
     { key: "default", label: "默认渲染", desc: "模型原始材质与描边" },
     { key: "enhanced", label: "默认增强", desc: "保留原版卡通配色与描边，只加法线材质、轮廓光、柔和光影" },
+    { key: "game", label: "游戏还原", desc: "照少女前线2渲染：三段柔和 toon + 冷色阴影 + 轮廓光 + 法线（保留原色）" },
     { key: "endfield", label: "终末地风格", desc: "加粗深色描边 + 冷色轮廓光 + 材质微调（只作用于角色）" },
     { key: "realistic", label: "写实 PBR", desc: "PBR 材质 + 环境光 + 泛光/景深/ACES（法线贴图生效）" },
     { key: "anime", label: "动漫电影感", desc: "保留卡通材质 + 暖主光/冷补光 + 轮廓光 + 泛光/景深/调色（推荐）" },

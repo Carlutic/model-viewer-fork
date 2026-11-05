@@ -69,7 +69,8 @@ import { motionTracks, loadRemoteMotionTracks } from "./motionTracks";
 import { PBRMaterialBuilder } from "babylon-mmd/esm/Loader/pbrMaterialBuilder";
 import { applyRealisticMaterials, disableRealisticMode, enableRealisticMode, setRealisticNormalMaps } from "./realisticMode";
 import { disableAnimeMode, enableAnimeMode } from "./animeMode";
-import { disableEnhancedMode, enableEnhancedMode } from "./enhancedMode";
+import { disableEnhancedMode, enableEnhancedMode } from "./enhancedMode";
+import { disableGameMode, enableGameMode } from "./gameMode";
 import type { ISceneBuilder } from "../baseRuntime";
 import { CustomLoadingScreen } from "../CustomLoadingScreen";
 import { FirebaseInstance } from "../fb";
@@ -422,7 +423,7 @@ export class SceneBuilder implements ISceneBuilder {
         let initialRenderPreset: RenderPreset = "default";
         try {
             const storedPreset = localStorage.getItem("model-viewer.renderPreset");
-            if (storedPreset === "default" || storedPreset === "enhanced" || storedPreset === "endfield" || storedPreset === "realistic" || storedPreset === "anime" || storedPreset === "off") initialRenderPreset = storedPreset;
+            if (storedPreset === "default" || storedPreset === "enhanced" || storedPreset === "game" || storedPreset === "endfield" || storedPreset === "realistic" || storedPreset === "anime" || storedPreset === "off") initialRenderPreset = storedPreset;
         } catch { /* ignore */ }
         setMaterialRenderPreset(initialRenderPreset);
 
@@ -432,6 +433,7 @@ export class SceneBuilder implements ISceneBuilder {
         let realisticMode = initialRenderPreset === "realistic";
         let animeMode = initialRenderPreset === "anime";
         let enhancedMode = initialRenderPreset === "enhanced";
+        let gameMode = initialRenderPreset === "game";
         const currentMaterialBuilder = (): MmdStandardMaterialBuilder | PBRMaterialBuilder => realisticMode ? pbrMaterialBuilder : materialBuilder;
         materialBuilder.afterBuildSingleMaterial = afterBuildSingleMaterialDefault;
 
@@ -1306,12 +1308,15 @@ export class SceneBuilder implements ISceneBuilder {
             const wasRealistic = realisticMode;
             const wasAnime = animeMode;
             const wasEnhanced = enhancedMode;
+            const wasGame = gameMode;
             realisticMode = preset === "realistic";
             animeMode = preset === "anime";
             enhancedMode = preset === "enhanced";
+            gameMode = preset === "game";
             if (!realisticMode) disableRealisticMode(scene);
             if (!animeMode) disableAnimeMode(scene);
             if (!enhancedMode) disableEnhancedMode(scene);
+            if (!gameMode) disableGameMode(scene);
             if (realisticMode) {
                 enableRealisticMode(scene, stillCamera);
             }
@@ -1321,7 +1326,10 @@ export class SceneBuilder implements ISceneBuilder {
             if (enhancedMode) {
                 enableEnhancedMode(scene, stillCamera);
             }
-            if ((wasRealistic !== realisticMode || wasAnime !== animeMode || wasEnhanced !== enhancedMode) && chosenChar) {
+            if (gameMode) {
+                enableGameMode(scene, stillCamera);
+            }
+            if ((wasRealistic !== realisticMode || wasAnime !== animeMode || wasEnhanced !== enhancedMode || wasGame !== gameMode) && chosenChar) {
                 // materials are built at load time, so rebuild the character
                 void changeCharacter(chosenChar.name, chosenChar.id, true);
             }

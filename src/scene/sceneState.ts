@@ -1,6 +1,6 @@
 import type { BaseCharData, GenshinCharData, HSRCharData, ZZZCharData, WuwaCharData, HNACharData, NTECharData, SnowbreakCharData, GirlsFrontlineCharData, ArknightsCharData, BlueArchiveCharData, IdolmasterCharData, GoodThingsCharData, HbrCharData, OthersCharData } from "../sceneBuilder.types";
 
-export type RenderPreset = "default" | "enhanced" | "endfield" | "realistic" | "anime" | "off";
+export type RenderPreset = "default" | "enhanced" | "game" | "endfield" | "realistic" | "anime" | "off";
 
 export type TabMode = "Genshin" | "HSR" | "ZZZ" | "WuWa" | "HNA" | "NTE" | "Snowbreak" | "GirlsFrontline" | "Arknights" | "BlueArchive" | "Idolmaster" | "GoodThings" | "Others" | "HeavenBurnsRed" | "None";
 

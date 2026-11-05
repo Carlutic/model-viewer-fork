@@ -64,7 +64,7 @@ function hideEffectMaterial(material: MmdStandardMaterial): void {
 // The viewer freezes materials for performance, so a preset change rebuilds the
 // current model's materials through these hooks.
 // ---------------------------------------------------------------------------
-export type MaterialRenderPreset = "default" | "enhanced" | "endfield" | "realistic" | "anime" | "off";
+export type MaterialRenderPreset = "default" | "enhanced" | "game" | "endfield" | "realistic" | "anime" | "off";
 let materialRenderPreset: MaterialRenderPreset = "default";
 
 export const setMaterialRenderPreset = (preset: MaterialRenderPreset): void => {
@@ -111,6 +111,52 @@ function getAnimeToonRamp(scene: import("@babylonjs/core/scene").Scene): Texture
 const SKIN_MAT = /(皮肤|skin|body|脸|face)/i;
 const EYE_MAT = /(眼睛|eye|瞳|eyewhite|眼白)/i;
 
+/**
+ * 少女前线2-style soft three-band toon ramp: cool saturated shadow, neutral mid,
+ * warm highlight, each band with a smooth edge. It replaces the model's hard
+ * toon texture in "game" mode only; the diffuse colour/saturation are untouched.
+ */
+let gameToonRamp: Texture | null = null;
+
+function getGameToonRamp(scene: import("@babylonjs/core/scene").Scene): Texture {
+    if (gameToonRamp) return gameToonRamp;
+    const width = 256;
+    const data = new Uint8Array(width * 4);
+    const bands: Array<[number, [number, number, number], [number, number, number]]> = [
+        [0.0, [0.46, 0.53, 0.72], [0.46, 0.53, 0.72]],   // shadow: cool
+        [0.45, [0.72, 0.75, 0.84], [0.82, 0.83, 0.88]],  // mid
+        [0.80, [0.98, 0.97, 0.94], [1.0, 1.0, 1.0]],     // light: warm white
+    ];
+    for (let i = 0; i < width; i++) {
+        const t = i / (width - 1);
+        // pick the band segment and blend with a smooth edge (0.10 wide)
+        let col = bands[0][1];
+        for (let b = 0; b < bands.length; b++) {
+            const [start, from, to] = bands[b];
+            const next = bands[b + 1];
+            const end = next ? next[0] : 1.0;
+            if (t >= start && t <= end) {
+                const k = Math.min(1, Math.max(0, (t - start) / Math.max(1e-4, end - start)));
+                const s = k * k * (3 - 2 * k);
+                col = [from[0] + (to[0] - from[0]) * s, from[1] + (to[1] - from[1]) * s, from[2] + (to[2] - from[2]) * s];
+                break;
+            }
+        }
+        data[i * 4] = Math.round(col[0] * 255);
+        data[i * 4 + 1] = Math.round(col[1] * 255);
+        data[i * 4 + 2] = Math.round(col[2] * 255);
+        data[i * 4 + 3] = 255;
+    }
+    const tex = new RawTexture(data, width, 1, 5, scene, false, false, Texture.NEAREST_SAMPLINGMODE);
+    tex.name = "gameToonRamp";
+    tex.wrapU = Texture.CLAMP_ADDRESSMODE;
+    tex.onDisposeObservable.add(() => {
+        if (gameToonRamp === tex) gameToonRamp = null;
+    });
+    gameToonRamp = tex;
+    return tex;
+}
+
 /** Inverse-hull outline thickness: MMD "edge size" scaled up for a cel look. */
 function applyRenderPresetToMaterial(material: MmdStandardMaterial): void {
     if (materialRenderPreset === "endfield") {
@@ -145,6 +191,14 @@ function applyRenderPresetToMaterial(material: MmdStandardMaterial): void {
             material.specularColor = new Color3(0.7, 0.7, 0.72);
             material.specularPower = 160;
         }
+    } else if (materialRenderPreset === "game") {
+        // Keep the original diffuse colour/saturation and outline; only swap the
+        // hard toon ramp for the soft three-band one and lift specular slightly.
+        try {
+            material.toonTexture = getGameToonRamp(material.getScene());
+        } catch { /* ignore */ }
+        material.specularColor = new Color3(0.18, 0.17, 0.16);
+        material.specularPower = 64;
     } else if (materialRenderPreset === "off") {
         // Flat render: no outline hull, no stylised speculars.
         material.outlineWidth = 0;
