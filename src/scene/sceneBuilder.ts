@@ -67,7 +67,8 @@ import miniSearch from "minisearch";
 import extraCharDatas from "../../res/assets/extras.json";
 import { motionTracks, loadRemoteMotionTracks } from "./motionTracks";
 import { PBRMaterialBuilder } from "babylon-mmd/esm/Loader/pbrMaterialBuilder";
-import { applyRealisticMaterials, disableRealisticMode, enableRealisticMode, setRealisticNormalMaps } from "./realisticMode";
+import { applyRealisticMaterials, disableRealisticMode, enableRealisticMode, setRealisticNormalMaps } from "./realisticMode";
+import { disableAnimeMode, enableAnimeMode } from "./animeMode";
 import type { ISceneBuilder } from "../baseRuntime";
 import { CustomLoadingScreen } from "../CustomLoadingScreen";
 import { FirebaseInstance } from "../fb";
@@ -420,7 +421,7 @@ export class SceneBuilder implements ISceneBuilder {
         let initialRenderPreset: RenderPreset = "default";
         try {
             const storedPreset = localStorage.getItem("model-viewer.renderPreset");
-            if (storedPreset === "default" || storedPreset === "endfield" || storedPreset === "realistic" || storedPreset === "off") initialRenderPreset = storedPreset;
+            if (storedPreset === "default" || storedPreset === "endfield" || storedPreset === "realistic" || storedPreset === "anime" || storedPreset === "off") initialRenderPreset = storedPreset;
         } catch { /* ignore */ }
         setMaterialRenderPreset(initialRenderPreset);
 
@@ -428,6 +429,7 @@ export class SceneBuilder implements ISceneBuilder {
         const materialBuilder = new MmdStandardMaterialBuilder();
         const pbrMaterialBuilder = new PBRMaterialBuilder();
         let realisticMode = initialRenderPreset === "realistic";
+        let animeMode = initialRenderPreset === "anime";
         const currentMaterialBuilder = (): MmdStandardMaterialBuilder | PBRMaterialBuilder => realisticMode ? pbrMaterialBuilder : materialBuilder;
         materialBuilder.afterBuildSingleMaterial = afterBuildSingleMaterialDefault;
 
@@ -1296,13 +1298,18 @@ export class SceneBuilder implements ISceneBuilder {
             // build and enable/disable the cool rim light. No screen-wide overlay.
             setMaterialRenderPreset(preset);
             const wasRealistic = realisticMode;
+            const wasAnime = animeMode;
             realisticMode = preset === "realistic";
+            animeMode = preset === "anime";
+            if (!realisticMode) disableRealisticMode(scene);
+            if (!animeMode) disableAnimeMode(scene);
             if (realisticMode) {
                 enableRealisticMode(scene, stillCamera);
-            } else {
-                disableRealisticMode(scene);
             }
-            if (wasRealistic !== realisticMode && chosenChar) {
+            if (animeMode) {
+                enableAnimeMode(scene, stillCamera);
+            }
+            if ((wasRealistic !== realisticMode || wasAnime !== animeMode) && chosenChar) {
                 // materials are built at load time, so rebuild the character
                 void changeCharacter(chosenChar.name, chosenChar.id, true);
             }

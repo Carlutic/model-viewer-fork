@@ -63,7 +63,7 @@ function hideEffectMaterial(material: MmdStandardMaterial): void {
 // The viewer freezes materials for performance, so a preset change rebuilds the
 // current model's materials through these hooks.
 // ---------------------------------------------------------------------------
-export type MaterialRenderPreset = "default" | "endfield" | "realistic" | "off";
+export type MaterialRenderPreset = "default" | "endfield" | "realistic" | "anime" | "off";
 let materialRenderPreset: MaterialRenderPreset = "default";
 
 export const setMaterialRenderPreset = (preset: MaterialRenderPreset): void => {
@@ -82,6 +82,14 @@ function applyRenderPresetToMaterial(material: MmdStandardMaterial): void {
         material.textureAdditiveColor = new Color4(0.008, 0.011, 0.016, 0);
         material.specularColor = new Color3(0.12, 0.13, 0.16);
         material.specularPower = 48;
+    } else if (materialRenderPreset === "anime") {
+        // Anime-cinematic: keep the toon shading, but boost saturation and give
+        // the cloth/leather a slightly stronger stylised specular.
+        const w = material.outlineWidth;
+        if (w > 0) material.outlineWidth = w * 1.15;
+        material.textureMultiplicativeColor = new Color4(1.06, 1.0, 0.95, 1);
+        material.specularColor = new Color3(0.30, 0.27, 0.24);
+        material.specularPower = 64;
     } else if (materialRenderPreset === "off") {
         // Flat render: no outline hull, no stylised speculars.
         material.outlineWidth = 0;
