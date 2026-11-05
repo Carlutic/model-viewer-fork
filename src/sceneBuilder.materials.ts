@@ -128,8 +128,8 @@ function applyRenderPresetToMaterial(material: MmdStandardMaterial): void {
         // soft painted one and give skin/eyes/cloth stylised responses.
         const w = material.outlineWidth;
         if (w > 0) material.outlineWidth = w * 1.2;
-        material.textureMultiplicativeColor = new Color4(1.10, 1.03, 0.96, 1);
-        material.specularColor = new Color3(0.34, 0.30, 0.27);
+        material.textureMultiplicativeColor = new Color4(1.0, 0.99, 0.97, 1);
+        material.specularColor = new Color3(0.22, 0.19, 0.17);
         material.specularPower = 80;
         try {
             material.toonTexture = getAnimeToonRamp(material.getScene());
@@ -137,7 +137,7 @@ function applyRenderPresetToMaterial(material: MmdStandardMaterial): void {
         const mname = material.name ?? "";
         if (SKIN_MAT.test(mname)) {
             // fake subsurface: lift the shadow side with a warm scatter tint
-            material.textureAdditiveColor = new Color4(0.10, 0.045, 0.025, 0);
+            material.textureAdditiveColor = new Color4(0.045, 0.018, 0.010, 0);
             material.specularColor = new Color3(0.12, 0.10, 0.09);
             material.specularPower = 32;
         } else if (EYE_MAT.test(mname)) {

@@ -23,34 +23,34 @@ export function enableAnimeMode(scene: Scene, camera: Camera): void {
     const key = scene.getLightByName("DirectionalLight");
     if (key) {
         key.diffuse = new Color3(1.0, 0.96, 0.90);
-        key.intensity = 1.12;
+        key.intensity = 0.9;
     }
     const hemi = scene.getLightByName("HemisphericLight");
     if (hemi) {
-        hemi.intensity = 0.45;
+        hemi.intensity = 0.3;
         (hemi as HemisphericLight).groundColor = new Color3(0.30, 0.34, 0.46);
     }
     const rim = scene.getLightByName("RimLight");
     if (rim) {
-        rim.intensity = 1.0;
+        rim.intensity = 0.65;
         rim.diffuse = new Color3(0.55, 0.72, 1.0);
     }
     if (!fillLight) {
         fillLight = new DirectionalLight("AnimeFill", new Vector3(-0.5, -0.35, -1), scene);
         fillLight.diffuse = new Color3(1.0, 0.87, 0.74);
     }
-    fillLight.intensity = 0.45;
+    fillLight.intensity = 0.28;
     if (!pipeline) {
         pipeline = new DefaultRenderingPipeline("animePipeline", true, scene, [camera]);
         pipeline.fxaaEnabled = true;
         pipeline.bloomEnabled = true;
-        pipeline.bloomThreshold = 0.85;
-        pipeline.bloomWeight = 0.32;
+        pipeline.bloomThreshold = 0.96;
+        pipeline.bloomWeight = 0.14;
         pipeline.bloomKernel = 56;
         pipeline.imageProcessing.toneMappingEnabled = true;
         pipeline.imageProcessing.toneMappingType = (scene.getEngine() as unknown as { ACES?: number }).ACES ?? 1;
-        pipeline.imageProcessing.exposure = 1.10;
-        pipeline.imageProcessing.contrast = 1.04;
+        pipeline.imageProcessing.exposure = 0.92;
+        pipeline.imageProcessing.contrast = 1.0;
         pipeline.imageProcessing.colorCurvesEnabled = true;
         const curves = pipeline.imageProcessing.colorCurves!;
         curves.globalSaturation = 24;
