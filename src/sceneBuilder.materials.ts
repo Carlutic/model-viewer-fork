@@ -79,7 +79,9 @@ export const setMaterialRenderPreset = (preset: MaterialRenderPreset): void => {
 let animeToonRamp: Texture | null = null;
 
 function getAnimeToonRamp(scene: import("@babylonjs/core/scene").Scene): Texture {
-    if (animeToonRamp) return animeToonRamp;
+    // The character rebuild disposes its materials together with their textures, so
+    // a cached ramp may already be disposed on the next preset switch.
+    if (animeToonRamp && !animeToonRamp.isDisposed()) return animeToonRamp;
     const width = 256;
     const data = new Uint8Array(width * 4);
     for (let i = 0; i < width; i++) {
