@@ -79,9 +79,7 @@ export const setMaterialRenderPreset = (preset: MaterialRenderPreset): void => {
 let animeToonRamp: Texture | null = null;
 
 function getAnimeToonRamp(scene: import("@babylonjs/core/scene").Scene): Texture {
-    // The character rebuild disposes its materials together with their textures, so
-    // a cached ramp may already be disposed on the next preset switch.
-    if (animeToonRamp && !animeToonRamp.isDisposed()) return animeToonRamp;
+    if (animeToonRamp) return animeToonRamp;
     const width = 256;
     const data = new Uint8Array(width * 4);
     for (let i = 0; i < width; i++) {
@@ -100,6 +98,12 @@ function getAnimeToonRamp(scene: import("@babylonjs/core/scene").Scene): Texture
     const tex = new RawTexture(data, width, 1, 5, scene, false, false, Texture.NEAREST_SAMPLINGMODE);
     tex.name = "animeToonRamp";
     tex.wrapU = Texture.CLAMP_ADDRESSMODE;
+    // The character rebuild disposes its materials together with their textures, so
+    // drop the cache when that happens (otherwise the next preset switch reuses a
+    // disposed texture and the model renders black).
+    tex.onDisposeObservable.add(() => {
+        if (animeToonRamp === tex) animeToonRamp = null;
+    });
     animeToonRamp = tex;
     return tex;
 }
