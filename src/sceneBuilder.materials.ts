@@ -96,9 +96,9 @@ function applyRenderPresetToMaterial(material: MmdStandardMaterial): void {
  * without the manifest render exactly as before.
  */
 let activeNormalMapsBase = "";
-let activeNormalMaps: Record<string, string> = {};
+let activeNormalMaps: Record<string, string | { normal?: string; rmo?: string }> = {};
 
-export function setActiveNormalMaps(base: string, maps: Record<string, string> | null): void {
+export function setActiveNormalMaps(base: string, maps: Record<string, string | { normal?: string; rmo?: string }> | null): void {
     activeNormalMapsBase = base;
     activeNormalMaps = maps ?? {};
 }
@@ -107,7 +107,8 @@ function applyNormalMap(material: MmdStandardMaterial): void {
     const diffuse = material.diffuseTexture as Texture | null;
     if (!diffuse || !diffuse.name) return;
     const name = decodeURIComponent((diffuse.name.split("?")[0].split("/").pop() ?? ""));
-    const normalPath = activeNormalMaps[name];
+    const raw = activeNormalMaps[name] as string | { normal?: string } | undefined;
+    const normalPath = typeof raw === "string" ? raw : raw?.normal;
     if (!normalPath) return;
     try {
         const tex = new Texture(activeNormalMapsBase + normalPath, material.getScene(), false);
