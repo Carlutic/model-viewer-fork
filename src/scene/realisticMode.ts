@@ -70,6 +70,14 @@ export function enableRealisticMode(scene: Scene, camera: Camera): void {
     if (!envTexture) envTexture = createStudioEnvironment(scene);
     scene.environmentTexture = envTexture;
     scene.environmentIntensity = 0.55;
+    // Strong key light: PBR normal maps only read as detail when a directional
+    // light dominates the soft IBL.
+    const key = scene.getLightByName("DirectionalLight");
+    if (key) key.intensity = 1.55;
+    const hemi = scene.getLightByName("HemisphericLight");
+    if (hemi) hemi.intensity = 0.22;
+    const rim = scene.getLightByName("RimLight");
+    if (rim) rim.intensity = 0.35;
     pipelineCamera = camera;
     if (!pipeline) {
         pipeline = new DefaultRenderingPipeline("realisticPipeline", true, scene, [camera]);
@@ -113,6 +121,12 @@ export function disableRealisticMode(scene: Scene): void {
     }
     scene.environmentTexture = null;
     scene.environmentIntensity = 1;
+    const key = scene.getLightByName("DirectionalLight");
+    if (key) key.intensity = 0.8;
+    const hemi = scene.getLightByName("HemisphericLight");
+    if (hemi) hemi.intensity = 0.4;
+    const rim = scene.getLightByName("RimLight");
+    if (rim) rim.intensity = 0;
 }
 
 const SKIN = /(皮肤|skin|脸|face|头|head)/i;
@@ -141,11 +155,14 @@ function setupMaterial(material: PBRMaterial): void {
 
     const albedo = material.albedoTexture;
     if (albedo && albedo.name && normalMapSet) {
-        const fileName = decodeURIComponent((albedo.name.split("?")[0].split("/").pop() ?? ""));
+        const cleanName = albedo.name.split("?")[0].replace(/\\/g, "/");
+        const fileName = decodeURIComponent((cleanName.split("/").pop() ?? ""));
         const entry = resolveEntry(normalMapSet.maps[fileName]);
         if (entry?.normal) {
             const normal = new Texture(normalMapSet.base + entry.normal, material.getScene(), false);
             normal.name = "normal:" + entry.normal;
+            normal.gammaSpace = false;   // normal maps are linear data, not sRGB
+            normal.level = 1.35;         // slightly exaggerated so the detail reads at viewer distance
             material.bumpTexture = normal;
             material.invertNormalMapY = true;
         }
@@ -153,6 +170,7 @@ function setupMaterial(material: PBRMaterial): void {
             // glTF/Babylon ORM layout: R = ambient occlusion, G = roughness, B = metallic
             const orm = new Texture(normalMapSet.base + entry.rmo, material.getScene(), false);
             orm.name = "orm:" + entry.rmo;
+            orm.gammaSpace = false;
             material.metallicTexture = orm;
             material.useAmbientOcclusionFromMetallicTextureRed = true;
             material.useRoughnessFromMetallicTextureGreen = true;
