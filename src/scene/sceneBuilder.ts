@@ -668,7 +668,11 @@ export class SceneBuilder implements ISceneBuilder {
             }
         };
 
-        if (camMotionFile) promises.push(safeLoadMotion("motion", camMotionFile, (event: any) => updateLoadingText(0, `Loading camera... ${event.loaded}/${event.total} (${Math.floor(event.loaded * 100 / event.total)}%)`)));
+        // Always push a camera slot, even for tracks without a camera motion:
+        // the model/stage are picked by fixed position in the results array.
+        promises.push(camMotionFile
+            ? safeLoadMotion("motion", camMotionFile, (event: any) => updateLoadingText(0, `Loading camera... ${event.loaded}/${event.total} (${Math.floor(event.loaded * 100 / event.total)}%)`))
+            : Promise.resolve(undefined));
         promises.push(safeLoadMotion("motion", expressionMotionFile ? [modelMotionFile, expressionMotionFile] : modelMotionFile, (event: any) => updateLoadingText(1, `Loading motion... ${event.loaded}/${event.total} (${Math.floor(event.loaded * 100 / event.total)}%)`)));
 
         let charScreenMode = true;
@@ -1435,7 +1439,9 @@ export class SceneBuilder implements ISceneBuilder {
             customLoadingScreen.setAccentColor(charScreenElement);
             promises = [];
 
-            if (camMotionFile) promises.push(safeLoadMotion("motion", camMotionFile, (event: any) => updateLoadingText(0, `Loading camera... ${event.loaded}/${event.total} (${Math.floor(event.loaded * 100 / event.total)}%)`)));
+            promises.push(camMotionFile
+                ? safeLoadMotion("motion", camMotionFile, (event: any) => updateLoadingText(0, `Loading camera... ${event.loaded}/${event.total} (${Math.floor(event.loaded * 100 / event.total)}%)`))
+                : Promise.resolve(undefined));
             promises.push(safeLoadMotion("motion", expressionMotionFile ? [modelMotionFile, expressionMotionFile] : modelMotionFile, (event: any) => updateLoadingText(1, `Loading motion... ${event.loaded}/${event.total} (${Math.floor(event.loaded * 100 / event.total)}%)`)));
 
             loadResults = await Promise.all(promises);
