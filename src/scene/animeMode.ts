@@ -22,42 +22,42 @@ export function enableAnimeMode(scene: Scene, camera: Camera): void {
     pipelineCamera = camera;
     const key = scene.getLightByName("DirectionalLight");
     if (key) {
-        key.diffuse = new Color3(1.0, 0.96, 0.90);
-        key.intensity = 0.9;
+        key.diffuse = new Color3(1.0, 0.985, 0.96);
+        key.intensity = 1.0;
     }
     const hemi = scene.getLightByName("HemisphericLight");
     if (hemi) {
-        hemi.intensity = 0.3;
-        (hemi as HemisphericLight).groundColor = new Color3(0.30, 0.34, 0.46);
+        hemi.intensity = 0.22;
+        (hemi as HemisphericLight).groundColor = new Color3(0.16, 0.21, 0.34);
     }
     const rim = scene.getLightByName("RimLight");
     if (rim) {
-        rim.intensity = 0.65;
-        rim.diffuse = new Color3(0.55, 0.72, 1.0);
+        rim.intensity = 0.9;
+        rim.diffuse = new Color3(0.45, 0.65, 1.0);
     }
     if (!fillLight) {
         fillLight = new DirectionalLight("AnimeFill", new Vector3(-0.5, -0.35, -1), scene);
-        fillLight.diffuse = new Color3(1.0, 0.87, 0.74);
+        fillLight.diffuse = new Color3(0.72, 0.80, 1.0);
     }
-    fillLight.intensity = 0.28;
+    fillLight.intensity = 0.16;
     if (!pipeline) {
         pipeline = new DefaultRenderingPipeline("animePipeline", true, scene, [camera]);
         pipeline.fxaaEnabled = true;
         pipeline.bloomEnabled = true;
-        pipeline.bloomThreshold = 0.96;
-        pipeline.bloomWeight = 0.14;
+        pipeline.bloomThreshold = 0.94;
+        pipeline.bloomWeight = 0.16;
         pipeline.bloomKernel = 56;
         pipeline.imageProcessing.toneMappingEnabled = true;
         pipeline.imageProcessing.toneMappingType = (scene.getEngine() as unknown as { ACES?: number }).ACES ?? 1;
-        pipeline.imageProcessing.exposure = 0.92;
-        pipeline.imageProcessing.contrast = 1.0;
+        pipeline.imageProcessing.exposure = 0.95;
+        pipeline.imageProcessing.contrast = 1.14;
         pipeline.imageProcessing.colorCurvesEnabled = true;
         const curves = pipeline.imageProcessing.colorCurves!;
-        curves.globalSaturation = 24;
-        curves.shadowsHue = 210;
-        curves.shadowsSaturation = 12;
-        curves.highlightsHue = 40;
-        curves.highlightsSaturation = 8;
+        curves.globalSaturation = 42;
+        curves.shadowsHue = 215;
+        curves.shadowsSaturation = 18;
+        curves.highlightsHue = 45;
+        curves.highlightsSaturation = 12;
         pipeline.imageProcessing.vignetteEnabled = true;
         pipeline.imageProcessing.vignetteWeight = 0.3;
         pipeline.depthOfFieldEnabled = true;

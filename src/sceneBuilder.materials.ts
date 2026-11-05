@@ -87,9 +87,9 @@ function getAnimeToonRamp(scene: import("@babylonjs/core/scene").Scene): Texture
         // smoothstep so the shadow band has a soft painted edge
         const s = t * t * (3 - 2 * t);
         const warm = Math.min(1, Math.max(0, (t - 0.45) / 0.55));
-        const r = Math.round((0.42 + (1.0 - 0.42) * s) * 255);
-        const g = Math.round((0.50 + (0.96 - 0.50) * s) * 255);
-        const b = Math.round((0.74 + (0.90 - 0.74) * s) * 255);
+        const r = Math.round((0.26 + (1.0 - 0.26) * s) * 255);
+        const g = Math.round((0.33 + (0.98 - 0.33) * s) * 255);
+        const b = Math.round((0.58 + (0.95 - 0.58) * s) * 255);
         data[i * 4] = Math.min(255, r + Math.round(40 * warm));
         data[i * 4 + 1] = Math.min(255, g + Math.round(30 * warm));
         data[i * 4 + 2] = Math.min(255, b - Math.round(20 * warm));
@@ -127,9 +127,9 @@ function applyRenderPresetToMaterial(material: MmdStandardMaterial): void {
         // Anime-cinematic: keep the toon shading, but replace the hard ramp with a
         // soft painted one and give skin/eyes/cloth stylised responses.
         const w = material.outlineWidth;
-        if (w > 0) material.outlineWidth = w * 1.2;
-        material.textureMultiplicativeColor = new Color4(1.0, 0.99, 0.97, 1);
-        material.specularColor = new Color3(0.22, 0.19, 0.17);
+        if (w > 0) material.outlineWidth = w * 1.35;
+        material.textureMultiplicativeColor = new Color4(1.04, 1.0, 0.99, 1);
+        material.specularColor = new Color3(0.26, 0.24, 0.23);
         material.specularPower = 80;
         try {
             material.toonTexture = getAnimeToonRamp(material.getScene());
@@ -137,7 +137,7 @@ function applyRenderPresetToMaterial(material: MmdStandardMaterial): void {
         const mname = material.name ?? "";
         if (SKIN_MAT.test(mname)) {
             // fake subsurface: lift the shadow side with a warm scatter tint
-            material.textureAdditiveColor = new Color4(0.045, 0.018, 0.010, 0);
+            material.textureAdditiveColor = new Color4(0.030, 0.016, 0.012, 0);
             material.specularColor = new Color3(0.12, 0.10, 0.09);
             material.specularPower = 32;
         } else if (EYE_MAT.test(mname)) {
