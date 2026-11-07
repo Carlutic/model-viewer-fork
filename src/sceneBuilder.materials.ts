@@ -212,10 +212,12 @@ function applyRenderPresetToMaterial(material: MmdStandardMaterial): void {
  * material builder then attaches it as a bump texture. Purely additive: models
  * without the manifest render exactly as before.
  */
-let activeNormalMapsBase = "";
-let activeNormalMaps: Record<string, string | { normal?: string; rmo?: string }> = {};
+type MaterialMapEntry = string | { normal?: string; rmo?: string; baked?: string };
 
-export function setActiveNormalMaps(base: string, maps: Record<string, string | { normal?: string; rmo?: string }> | null): void {
+let activeNormalMapsBase = "";
+let activeNormalMaps: Record<string, MaterialMapEntry> = {};
+
+export function setActiveNormalMaps(base: string, maps: Record<string, MaterialMapEntry> | null): void {
     activeNormalMapsBase = base;
     activeNormalMaps = maps ?? {};
 }
@@ -224,7 +226,7 @@ function applyNormalMap(material: MmdStandardMaterial): void {
     const diffuse = material.diffuseTexture as Texture | null;
     if (!diffuse || !diffuse.name) return;
     const name = decodeURIComponent((diffuse.name.split("?")[0].split("/").pop() ?? ""));
-    const raw = activeNormalMaps[name] as string | { normal?: string } | undefined;
+    const raw = activeNormalMaps[name] as MaterialMapEntry | undefined;
     const normalPath = typeof raw === "string" ? raw : raw?.normal;
     if (!normalPath) return;
     try {
@@ -234,6 +236,105 @@ function applyNormalMap(material: MmdStandardMaterial): void {
         material.bumpTexture = tex;
         material.invertNormalMapY = true;
     } catch { /* ignore */ }
+}
+
+
+// ---------------------------------------------------------------------------
+// Stockings material: replicate the Blender "丝袜" shader (Pelica / Endfield).
+//
+// Blender graph: base = D * P.B, roughness = 1 - P.A, metallic = P.R,
+// normal = N, plus a view-dependent Fresnel sheen (IOR 1.5, ramp threshold
+// 0.855) and darkening at grazing angles. The viewer's MMD toon material has no
+// per-pixel metallic/roughness, so we bake D * P.B into a texture and add the
+// Fresnel response as an MMD sphere-map sheen (view dependent) + softer specular.
+// Models without a matching `baked` entry in material_maps.json are untouched.
+// ---------------------------------------------------------------------------
+const STOCKING_MAT = /(丝袜|袜|stocking|socks)/i;
+
+const stockingsSphereMaps = new WeakMap<import("@babylonjs/core/scene").Scene, Texture>();
+
+function getStockingsSphereMap(scene: import("@babylonjs/core/scene").Scene): Texture {
+    const cached = stockingsSphereMaps.get(scene);
+    if (cached) return cached;
+    const size = 256;
+    const data = new Uint8Array(size * size * 4);
+    for (let y = 0; y < size; y++) {
+        for (let x = 0; x < size; x++) {
+            const dx = (x + 0.5) / size * 2 - 1;
+            const dy = (y + 0.5) / size * 2 - 1;
+            const r = Math.min(1, Math.hypot(dx, dy));
+            // Fresnel-like rise: flat facing the camera, bright towards grazing.
+            const fresnel = Math.pow(r, 3.0);
+            const sheen = 0.62 * fresnel;
+            const i = (y * size + x) * 4;
+            data[i] = Math.round(sheen * 255 * 0.96);
+            data[i + 1] = Math.round(sheen * 255 * 0.97);
+            data[i + 2] = Math.round(sheen * 255);
+            data[i + 3] = 255;
+        }
+    }
+    const tex = RawTexture.CreateRGBATexture(data, size, size, scene, false, false, Texture.BILINEAR_SAMPLINGMODE);
+    tex.name = "stockingsSphereMap";
+    tex.wrapU = Texture.CLAMP_ADDRESSMODE;
+    tex.wrapV = Texture.CLAMP_ADDRESSMODE;
+    tex.onDisposeObservable.add(() => {
+        if (stockingsSphereMaps.get(scene) === tex) stockingsSphereMaps.delete(scene);
+    });
+    stockingsSphereMaps.set(scene, tex);
+    return tex;
+}
+
+function lookupMaterialMap(material: MmdStandardMaterial): MaterialMapEntry | undefined {
+    const diffuse = material.diffuseTexture as Texture | null;
+    if (!diffuse || !diffuse.name) return undefined;
+    const name = decodeURIComponent(diffuse.name.split("?")[0].split("/").pop() ?? "");
+    return activeNormalMaps[name];
+}
+
+function enhanceStockingsMaterial(material: MmdStandardMaterial): void {
+    const name = material.name ?? "";
+    const entry = lookupMaterialMap(material);
+    const isStocking = STOCKING_MAT.test(name);
+    if (!isStocking) return;
+
+    // 1) baked albedo = D * P.B (matches the Blender material's MULTIPLY node).
+    if (entry && typeof entry !== "string" && entry.baked && activeNormalMapsBase) {
+        const original = material.diffuseTexture as Texture | null;
+        const baked = new Texture(
+            activeNormalMapsBase + entry.baked,
+            material.getScene(),
+            false,
+            false,
+            Texture.TRILINEAR_SAMPLINGMODE,
+            () => {
+                baked.name = "stockingsBaked:" + entry.baked;
+                material.diffuseTexture = baked;
+                material.useAlphaFromDiffuseTexture = true;
+                baked.hasAlpha = true;
+            },
+            () => {
+                material.diffuseTexture = original;
+            }
+        );
+    }
+
+    // 2) Fresnel sheen as an additive MMD sphere map (view dependent, like Blender).
+    try {
+        const sphere = getStockingsSphereMap(material.getScene());
+        material.sphereTexture = sphere;
+        material.sphereTextureBlendMode = 2; // MmdPluginMaterialSphereTextureBlendMode.Add
+    } catch { /* ignore */ }
+
+    // 3) Softer, broader specular than the default toon material.
+    material.specularColor = new Color3(0.24, 0.235, 0.23);
+    material.specularPower = 22;
+
+    // 4) Blender uses HASHED alpha with a 0.5 threshold; the base texture is opaque
+    //    for Pelica, so this keeps the material stable without sorting artefacts.
+    if (material.transparencyMode === Material.MATERIAL_ALPHABLEND || material.transparencyMode === Material.MATERIAL_ALPHATESTANDBLEND) {
+        material.transparencyMode = Material.MATERIAL_ALPHATESTANDBLEND;
+        material.alphaCutOff = 0.5;
+    }
 }
 
 // Keep exact logic from original callbacks — exported so SceneBuilder can assign them.
@@ -253,6 +354,7 @@ export const afterBuildSingleMaterialDefault = (material: MmdStandardMaterial): 
     hideEffectMaterial(material);
     hideFaceShapeMaterial(material);
     applyNormalMap(material);
+    enhanceStockingsMaterial(material);
     applyRenderPresetToMaterial(material);
 };
 
@@ -270,5 +372,7 @@ export const afterBuildSingleMaterialSt = (material: MmdStandardMaterial): void 
     }
     neutralizeGreenHairOutline(material);
     hideEffectMaterial(material);
+    applyNormalMap(material);
+    enhanceStockingsMaterial(material);
     applyRenderPresetToMaterial(material);
 };
